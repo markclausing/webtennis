@@ -74,7 +74,15 @@ packages to install.
   way to play. Nothing asks you to turn the phone sideways - a tennis court is
   taller than it is wide.
 
-The rules are the real ones, because they are what makes tennis tennis: the ball
+The court is not the real shape. A singles court is nearly three times as long as
+it is wide, and at that shape there is time to stroll to every ball - the width is
+the only thing you have to cover in a hurry and there was not enough of it. This
+one is about two to one: shorter, wider, and it makes you choose which ball to go
+for. The ball speeds came down with the length, or the same shot would simply
+arrive sooner in a smaller court, which is a different game again - at the old
+speeds one point in seven was an ace.
+
+The rules themselves are the real ones, because they are what makes tennis tennis: the ball
 has to land in, it may bounce once, a serve has to find the diagonal box, and the
 score runs fifteen, thirty, forty, deuce, advantage. A set is won by two clear
 games, and the score goes up in the middle of the screen after every point, in

@@ -14,9 +14,15 @@ export const TICK_RATE = 60;
 export const DT = 1 / TICK_RATE;
 export const FRAME_TIME = 1000 / TICK_RATE;
 
-// The court, in pixels, at the real ratio.
-export const COURT_W = 296; // singles width
-export const COURT_L = 854; // baseline to baseline
+// The court, in pixels.
+//
+// Not the real ratio. A singles court is nearly three times as long as it is
+// wide, and at that shape there is time to walk to every ball: the width is the
+// only thing you have to cover in a hurry, and there was not enough of it to
+// cover. Shorter and wider - about two to one - is the arcade shape, and it is
+// what makes you choose which ball to go for.
+export const COURT_W = 372; // singles width
+export const COURT_L = 700; // baseline to baseline
 export const ALLEY = 44; // the doubles tramlines, drawn but not played
 export const RUNOFF = 130; // room behind the baseline to chase a deep ball
 
@@ -32,8 +38,8 @@ export const COURT = {
   cy: RUNOFF + COURT_L / 2,
 };
 
-/** The service line, this far from the net. Real ratio: 6.4 m of 11.885 m. */
-export const SERVICE_D = 230;
+/** The service line, this far from the net: the same share of the half as a real one. */
+export const SERVICE_D = 190;
 
 /** How high the net is, in the same units the ball's height uses. */
 export const NET_H = 26;
@@ -91,8 +97,13 @@ export const RUSHED_SCATTER = 0.55;
 
 /** How long the swing stays open after you let go, if the ball is not there yet. */
 export const SWING_WINDOW = 22;
-export const SHOT_MIN = 520; // a blocked return
-export const SHOT_MAX = 900; // a full drive
+// Scaled with the court when it was shortened. Leaving them alone made every
+// ball arrive sooner in the same number of pixels of court, which is a different
+// game: serves became unreturnable (one point in seven was an ace) and the
+// harder hitter beat himself. The court is wider to make you run; it is not
+// meant to be faster as well.
+export const SHOT_MIN = 430;
+export const SHOT_MAX = 740;
 
 /**
  * What the last part of the wind-up costs.
@@ -111,8 +122,8 @@ export const LOB_CHARGE = 16; // hold past this and it goes up instead of throug
 // Measured against how often a serve goes unreturned: at 620-1020 nearly two
 // points in five were aces, which is not tennis. This lands at about one in
 // eleven, with rallies of three or four shots.
-export const SERVE_MIN = 520;
-export const SERVE_MAX = 820;
+export const SERVE_MIN = 430;
+export const SERVE_MAX = 675;
 // The toss has to be up long enough to hit on the way down, and the window has
 // to outlast the flight: at 190 high and 70 ticks the ball was still above
 // hitting height when the toss timed out, so a human could never serve at all -

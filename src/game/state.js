@@ -10,6 +10,7 @@
 
 import {
   AI_LEVELS, COURT, GAMES_TO_WIN, POINT_NAMES, PLAYER_PRESETS, SERVE_READY_TICKS,
+  SERVICE_D,
 } from '../constants.js';
 
 export function createMatch(options = {}) {
@@ -121,8 +122,11 @@ export function serviceBox(state) {
   // Diagonally: serving from the right hand court means aiming at the receiver's
   // right hand box, which is on the other side of the centre line from us.
   const towardsTop = server.dir > 0;
-  const y0 = towardsTop ? COURT.cy - 230 : COURT.cy;
-  const y1 = towardsTop ? COURT.cy : COURT.cy + 230;
+  // Taken from the constant rather than written out again: the two had drifted
+  // apart the moment the court changed size, which would have left the box the
+  // serve has to land in somewhere other than the line drawn on the court.
+  const y0 = towardsTop ? COURT.cy - SERVICE_D : COURT.cy;
+  const y1 = towardsTop ? COURT.cy : COURT.cy + SERVICE_D;
   const leftHalf = right === (server.dir > 0);
   return {
     x0: leftHalf ? COURT.left : COURT.cx,
