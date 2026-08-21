@@ -11,7 +11,8 @@
  */
 
 import {
-  CHARGE_MAX, COURT, DT, GRAVITY, AIR_DRAG, BOUNCE, BOUNCE_FRICTION, REACH, SPIN_DRIFT,
+  AIR_DRAG, BOUNCE, BOUNCE_FRICTION, CHARGE_MAX, COURT, DRIVE_DEPTH, DRIVE_FROM, DT,
+  GRAVITY, REACH, SPIN_DRIFT,
 } from '../constants.js';
 import { clamp, randRange } from '../util.js';
 import { ownBaseline, servingRight, serviceBox } from './state.js';
@@ -142,7 +143,11 @@ export function aiIntent(state, i) {
     const error = randRange(state, -1, 1) * (skill.aimError / 58);
     intent.swing = true;
     intent.power = CHARGE_MAX * clamp(skill.windup - 0.15 + randRange(state, 0, 0.3), 0.1, 1);
-    intent.aim = { x: side * 0.7 + error, y: -p.dir * 0.4 + error * 0.4 };
+    // Aims shorter the harder it hits, because pace now costs depth: without
+    // this the better levels would drive every ball over the baseline.
+    const drive = Math.max(0, skill.windup - DRIVE_FROM) / (1 - DRIVE_FROM);
+    const shorter = clamp((0.77 - 0.62 - drive * DRIVE_DEPTH) / 0.18, -1.3, 0.6);
+    intent.aim = { x: side * 0.7 + error, y: -p.dir * shorter + error * 0.3 };
   }
   return intent;
 }

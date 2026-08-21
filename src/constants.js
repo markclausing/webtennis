@@ -69,7 +69,7 @@ export const SWING_COOLDOWN = 8;
  */
 export const AFTERTOUCH_TICKS = 60; // one second
 export const AT_SIDE = 125;
-export const AT_LIFT = 80;
+export const AT_LIFT = 135;
 
 /**
  * Winding up.
@@ -93,6 +93,18 @@ export const RUSHED_SCATTER = 0.55;
 export const SWING_WINDOW = 22;
 export const SHOT_MIN = 520; // a blocked return
 export const SHOT_MAX = 900; // a full drive
+
+/**
+ * What the last part of the wind-up costs.
+ *
+ * Below `DRIVE_FROM` of a full swing, pace is free: the shot is solved to land
+ * where you aimed. Above it, every bit of extra pace pushes the ball deeper, by
+ * `DRIVE_DEPTH` of the half court at a full swing - which is past the baseline.
+ * Hitting flat out should be a decision with something at stake, the same way
+ * steering hard is.
+ */
+export const DRIVE_FROM = 0.55;
+export const DRIVE_DEPTH = 0.42;
 export const LOB_CHARGE = 16; // hold past this and it goes up instead of through
 
 /** A serve is its own shot: faster, and it has to be started with a toss. */

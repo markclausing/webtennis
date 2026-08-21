@@ -13,7 +13,8 @@
 import {
   AIR_DRAG, BALL_R, BOUNCE, BOUNCE_FRICTION, BTN, CHARGE_MAX, COURT, DT, GRAVITY,
   LOB_CHARGE, NET_H, PLAYER_ACC, PLAYER_DAMP, PLAYER_R, PLAYER_SPEED, POINT_TICKS,
-  AFTERTOUCH_TICKS, AT_LIFT, AT_SIDE, REACH, RUNOFF, RUSHED_SCATTER, SERVE_MAX, SERVE_MIN,
+  AFTERTOUCH_TICKS, AT_LIFT, AT_SIDE, DRIVE_DEPTH, DRIVE_FROM, REACH, RUNOFF,
+  RUSHED_SCATTER, SERVE_MAX, SERVE_MIN,
   SHOT_MAX, SHOT_MIN, SPIN_DRIFT, SWING_COOLDOWN, SWING_TICKS, SWING_WINDOW,
   TOSS_HEIGHT, TOSS_TICKS, WORLD_H, WORLD_W,
 } from '../constants.js';
@@ -184,9 +185,10 @@ function hit(state, i, intent, serving) {
   const charge = clamp(p.charging || p.swing > 0 ? p.charge : (intent.power || 0), 0, CHARGE_MAX);
   const t = charge / CHARGE_MAX;
 
-  // Where he is aiming: the stick picks a spot across the court and how deep.
+  // Where he is aiming: the stick picks a spot across the court and how deep,
+  // and the wind-up pushes it deeper still.
   const aim = intent.aim && (intent.aim.x || intent.aim.y) ? intent.aim : { x: 0, y: 0 };
-  const target = aimPoint(state, i, aim, serving);
+  const target = aimPoint(state, i, aim, serving, t);
   // A shot thrown at the ball at the last moment goes where it likes. This is
   // deterministic - it comes out of state.rng - so both machines in an online
   // match scatter it identically.
@@ -255,7 +257,7 @@ function hit(state, i, intent, serving) {
  * hard finished level with each other because the only thing separating them
  * was how prettily they placed a ball that always went in.
  */
-function aimPoint(state, i, aim, serving) {
+function aimPoint(state, i, aim, serving, power = 0) {
   const p = state.players[i];
   const far = farBaseline(p);
   if (serving) {
@@ -271,10 +273,18 @@ function aimPoint(state, i, aim, serving) {
   // able to put the ball out: you get to the corners by adding aftertouch, which
   // is a thing you choose to do rather than a thing that happens because you were
   // holding a direction to reach the ball in the first place.
-  const depth = 0.62 + (aim.y * -p.dir) * 0.18;
+  // Hitting hard sends it deep, and past a point it sends it long.
+  //
+  // Power used to cost nothing: the flight was solved to land on the target
+  // whatever the pace, so a full swing was simply better than a half one. Now
+  // the last part of the wind-up buys pace and spends depth, and a shot struck
+  // as hard as it can be struck goes over the baseline unless you take
+  // something off it - which is what aftertouch backwards is for.
+  const drive = Math.max(0, power - DRIVE_FROM) / (1 - DRIVE_FROM);
+  const depth = 0.62 + (aim.y * -p.dir) * 0.18 + drive * DRIVE_DEPTH;
   return {
     x: COURT.cx + aim.x * (COURT.right - COURT.cx) * 0.45,
-    y: COURT.cy + (far - COURT.cy) * clamp(depth, 0.32, 0.94),
+    y: COURT.cy + (far - COURT.cy) * clamp(depth, 0.32, 1.14),
   };
 }
 
