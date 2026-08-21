@@ -302,11 +302,25 @@ function aimPoint(state, i, aim, serving, power = 0) {
 function movePlayer(state, i, intent) {
   const p = state.players[i];
   const handicap = p.human ? 1 : p.ai.speed;
-  // Winding up shortens your stride as much as swinging does. Steering and
-  // running are the same stick, so without this a player who wants to angle the
-  // ball walks off it while he asks - and the fine control the angle is supposed
-  // to give him is unusable.
-  const speed = PLAYER_SPEED * handicap * (p.swing > 0 || p.charging ? 0.55 : 1);
+
+  // Winding up plants him. While the button is held the stick is not steering
+  // his feet at all, it is shaping the shot - which is the only way one stick
+  // can do both jobs without fighting itself. It also decides what the wind-up
+  // is worth: the earlier you commit, the longer you have to work on the ball,
+  // and the price is that you have to be standing in the right place already.
+  if (p.charging) {
+    p.vx *= PLAYER_DAMP * 0.7;
+    p.vy *= PLAYER_DAMP * 0.7;
+    if (Math.abs(intent.x) + Math.abs(intent.y) > 0.02) {
+      p.faceX = intent.x;
+      p.faceY = intent.y;
+    }
+    p.x = clamp(p.x + p.vx * DT, PLAYER_R, WORLD_W - PLAYER_R);
+    p.y = clamp(p.y + p.vy * DT, PLAYER_R, WORLD_H - PLAYER_R);
+    return;
+  }
+
+  const speed = PLAYER_SPEED * handicap * (p.swing > 0 ? 0.6 : 1);
   const l = len(intent.x, intent.y);
   if (l > 0.02) {
     p.faceX = intent.x / l;

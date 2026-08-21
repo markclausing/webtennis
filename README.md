@@ -56,8 +56,15 @@ packages to install.
 - **Nothing tells you how hard you are hitting it either.** The racket does: back
   and down as you wind up, through the ball on contact. A bar with a number's
   worth of precision in it was doing the judging for you.
+- **Holding the button plants you.** While it is held the stick shapes the shot
+  instead of moving your feet, which is the only way one stick does both jobs
+  without fighting itself - and it decides what the wind-up is worth: commit
+  early and you have a long time to work on the ball, at the price of having to
+  be standing in the right place already. Let go and you can run again.
 - **Steer while you swing** to place it: sideways sends it across the court,
-  forward drives it deep, back drops it short. **Keep steering for a second after
+  forward drives it deep, back drops it short. Held for a quarter of the wind-up
+  it moves the ball 0.11 of the way to the sideline, half 0.22, all of it 0.42 -
+  and aftertouch adds up to another 0.54 on top. **Keep steering for a second after
   contact** and the ball bends in the air. How far it bends is how *long* you
   hold it, not which of eight directions you pushed: a quarter of a second is a
   nudge, a full second walks the ball across half the court. That is where the

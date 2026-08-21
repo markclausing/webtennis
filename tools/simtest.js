@@ -12,7 +12,7 @@ import {
   awardPoint, callScore, createMatch, hashState, serviceBox,
 } from '../src/game/state.js';
 import { step } from '../src/game/sim.js';
-import { COURT, TICK_RATE, POINT_NAMES } from '../src/constants.js';
+import { BTN, COURT, TICK_RATE, POINT_NAMES } from '../src/constants.js';
 import { compare } from './sync-shared.js';
 
 let failed = false;
@@ -190,6 +190,62 @@ check(outLong.message === 'OUT', 'and so is one past the baseline');
 const twice = landAt(COURT.cx, COURT.top + 120, 0);
 check(twice.points[0] === 1 || twice.message === 'WINNER',
   'a ball nobody returns is a point for whoever hit it');
+
+// --- Planted while you wind up ------------------------------------------------
+//
+// Holding the button stops the player dead, so the stick can shape the shot
+// instead of steering his feet. Checked here rather than in a browser because
+// the first attempt at measuring it in one measured nothing at all: the test
+// ball ended the point, the game went back to serving - where the button tosses
+// instead of winding up - and the player it was watching had run into the side
+// of the world.
+
+function walk(mask, ticks) {
+  const state = createMatch({ seed: 12, humans: [true, false] });
+  while (state.phase === 'serve' && state.tick < 300) step(state, [0, 0]);
+  const p = state.players[0];
+  const b = state.ball;
+  // A rally with the ball far away and going nowhere, so nothing interrupts.
+  state.phase = 'rally';
+  state.lastHitter = 1;
+  state.wasServe = false;
+  state.bounces = 0;
+  b.live = true;
+  b.x = COURT.cx;
+  b.y = COURT.cy - 40;
+  b.z = 300;
+  b.vx = 0;
+  b.vy = 0;
+  b.vz = 0;
+  b.protectedFor = null;
+  p.x = COURT.cx;
+  p.y = COURT.bottom - 40;
+  p.vx = 0;
+  p.vy = 0;
+  const from = p.x;
+  for (let i = 0; i < ticks; i++) step(state, [mask, 0]);
+  return { moved: p.x - from, charging: p.charging };
+}
+
+console.log('');
+const ran = walk(BTN.RIGHT, 40);
+const held = walk(BTN.RIGHT | BTN.FIRE, 40);
+console.log(`Planting: running moves ${ran.moved.toFixed(0)}px in 40 ticks, `
+  + `holding the button moves ${held.moved.toFixed(0)}px`);
+if (ran.moved < 60) {
+  console.error(`FAIL: a player pushing the stick barely moved (${ran.moved.toFixed(0)}px)`);
+  process.exit(1);
+}
+if (!held.charging) {
+  console.error('FAIL: holding the button did not start a wind-up');
+  process.exit(1);
+}
+if (Math.abs(held.moved) > 4) {
+  console.error(`FAIL: he moved ${held.moved.toFixed(0)}px while winding up - the stick is `
+    + 'still steering his feet');
+  process.exit(1);
+}
+console.log('OK: winding up plants him, so the stick shapes the shot instead');
 
 // --- The umpire --------------------------------------------------------------
 

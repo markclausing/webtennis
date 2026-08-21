@@ -189,10 +189,13 @@ export class Renderer {
     const ctx = this.ctx;
     const b = state.ball;
     const reachable = b.live && Math.hypot(b.x - p.x, b.y - p.y) < REACH && b.z < 150;
-    if (!reachable) return;
+    if (!reachable && !p.charging) return;
 
-    ctx.strokeStyle = p.charging || p.swing > 0
-      ? 'rgba(255, 255, 255, 0.4)'
+    // Planted while the button is held, and he cannot run: worth saying out
+    // loud, because it is a decision with a cost and the player has to know he
+    // has made it.
+    ctx.strokeStyle = p.charging
+      ? (reachable ? 'rgba(255, 255, 255, 0.5)' : 'rgba(255, 255, 255, 0.28)')
       : 'rgba(232, 255, 77, 0.22)';
     ctx.lineWidth = Math.max(1, this.zoom);
     ctx.beginPath();
