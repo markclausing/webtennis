@@ -13,10 +13,11 @@
 import {
   AIR_DRAG, BALL_R, BOUNCE, BOUNCE_FRICTION, BTN, CHARGE_MAX, COURT, DT, GRAVITY,
   LOB_CHARGE, NET_H, PLAYER_ACC, PLAYER_DAMP, PLAYER_R, PLAYER_SPEED, POINT_TICKS,
-  REACH, RUNOFF, SERVE_MAX, SERVE_MIN, SHOT_MAX, SHOT_MIN, SPIN_DRIFT, SWING_COOLDOWN,
-  SWING_TICKS, TOSS_HEIGHT, TOSS_TICKS, WORLD_H, WORLD_W,
+  AFTERTOUCH_TICKS, AT_LIFT, AT_SIDE, REACH, RUNOFF, RUSHED_SCATTER, SERVE_MAX, SERVE_MIN,
+  SHOT_MAX, SHOT_MIN, SPIN_DRIFT, SWING_COOLDOWN, SWING_TICKS, SWING_WINDOW,
+  TOSS_HEIGHT, TOSS_TICKS, WORLD_H, WORLD_W,
 } from '../constants.js';
-import { clamp, len, norm } from '../util.js';
+import { clamp, len, norm, randRange } from '../util.js';
 import { maskToDir } from '../input.js';
 import { aiIntent } from './ai.js';
 import {
@@ -49,6 +50,7 @@ export function step(state, inputs) {
     if (p.swing > 0) p.swing--;
     if (intents[i].swing && p.swing === 0 && p.cooldown === 0) {
       p.swing = SWING_TICKS;
+      p.charge = intents[i].power || 0;
       state.events.push({ type: 'swing', player: i });
     }
     if (intents[i].toss) startToss(state, i);
@@ -57,6 +59,7 @@ export function step(state, inputs) {
 
   // 3. And then everybody moves.
   for (let i = 0; i < 2; i++) movePlayer(state, i, intents[i]);
+  steerBall(state, inputs);
   moveBall(state);
 
   return state;
@@ -74,7 +77,15 @@ function humanIntent(state, i, mask) {
   p.prevMask = mask;
 
   const intent = {
-    x: dir.x, y: dir.y, swing: false, toss: false, aim: dir, power: 0,
+    x: dir.x,
+    y: dir.y,
+    swing: false,
+    toss: false,
+    aim: dir,
+    power: 0,
+    // The second button is a lob: the same shot given far longer to arrive,
+    // which is the answer to somebody standing at the net.
+    lob: (mask & BTN.SWITCH) !== 0,
   };
 
   const serving = state.phase === 'serve' && state.server === i;
@@ -84,18 +95,23 @@ function humanIntent(state, i, mask) {
     return intent;
   }
 
+  // Holding the button is winding up, not waiting to fire: the shot goes off
+  // when the ball arrives, with however much wind-up you have by then. Letting
+  // go early commits you to a swing that stays open for a moment and then
+  // misses, which is the price of guessing.
   if (fire && !wasFire) {
     p.charging = true;
     p.charge = 0;
   }
   if (p.charging) {
-    p.charge++;
-    if (!fire || p.charge >= CHARGE_MAX) {
+    p.charge = Math.min(p.charge + 1, CHARGE_MAX);
+    if (!fire) {
       p.charging = false;
-      intent.swing = true;
-      intent.power = p.charge;
+      p.swing = Math.max(p.swing, SWING_WINDOW);
     }
   }
+  intent.swinging = p.charging || p.swing > 0;
+  intent.power = p.charge;
   return intent;
 }
 
@@ -123,7 +139,8 @@ function startToss(state, i) {
 function tryHit(state, i, intent) {
   const p = state.players[i];
   const b = state.ball;
-  if (p.swing === 0 || p.cooldown > 0 || !b.live) return;
+  const ready = p.swing > 0 || p.charging;
+  if (!ready || p.cooldown > 0 || !b.live) return;
   if (state.bounces >= 2) return; // already a point, whatever he does now
 
   const serving = state.phase === 'serve' && state.server === i;
@@ -143,12 +160,20 @@ function tryHit(state, i, intent) {
 function hit(state, i, intent, serving) {
   const p = state.players[i];
   const b = state.ball;
-  const charge = clamp(intent.power || 0, 0, CHARGE_MAX);
+  const charge = clamp(p.charging || p.swing > 0 ? p.charge : (intent.power || 0), 0, CHARGE_MAX);
   const t = charge / CHARGE_MAX;
 
   // Where he is aiming: the stick picks a spot across the court and how deep.
   const aim = intent.aim && (intent.aim.x || intent.aim.y) ? intent.aim : { x: 0, y: 0 };
   const target = aimPoint(state, i, aim, serving);
+  // A shot thrown at the ball at the last moment goes where it likes. This is
+  // deterministic - it comes out of state.rng - so both machines in an online
+  // match scatter it identically.
+  const scatter = RUSHED_SCATTER * (1 - t) * (COURT.right - COURT.cx);
+  if (scatter > 0.5) {
+    target.x += randRange(state, -scatter, scatter);
+    target.y += randRange(state, -scatter, scatter) * 0.5;
+  }
 
   const dx = target.x - b.x;
   const dy = target.y - b.y;
@@ -159,7 +184,7 @@ function hit(state, i, intent, serving) {
 
   // Time of flight, and from that the height it has to be hit at to land there.
   // A lob is the same shot given longer to arrive.
-  const lofted = !serving && charge > LOB_CHARGE;
+  const lofted = !serving && (intent.lob || charge > LOB_CHARGE);
   const flight = (flat / speed) * (lofted ? 1.75 : 1);
   b.spin = aim.x * 0.6;
 
@@ -181,6 +206,7 @@ function hit(state, i, intent, serving) {
 
   state.lastHitter = i;
   state.lastHitTick = state.tick;
+  state.steering = { player: i, ticks: AFTERTOUCH_TICKS };
   state.bounces = 0;
   state.rallyLength++;
   state.wasServe = serving;
@@ -250,6 +276,39 @@ function movePlayer(state, i, intent) {
   const minY = p.dir > 0 ? COURT.cy + PLAYER_R : RUNOFF * 0.2;
   const maxY = p.dir > 0 ? WORLD_H - RUNOFF * 0.2 : COURT.cy - PLAYER_R;
   p.y = clamp(p.y + p.vy * DT, minY, maxY);
+}
+
+/**
+ * Aftertouch: for a second after you hit it, you can still bend the ball.
+ *
+ * Sideways curves it; forward drives it on and back takes the pace off, which
+ * is the difference between a shot that lands on the line and one that sails
+ * over it. Only the player who hit it, only while it is in the air, and only a
+ * human - the CPU aims once and lives with it.
+ */
+function steerBall(state, inputs) {
+  const steer = state.steering;
+  if (!steer) return;
+  steer.ticks--;
+  if (steer.ticks <= 0) {
+    state.steering = null;
+    return;
+  }
+  const p = state.players[steer.player];
+  if (!p.human) return;
+  const b = state.ball;
+  if (!b.live || b.z <= 0.5 || state.bounces > 0) return;
+
+  const dir = maskToDir(inputs[steer.player] | 0);
+  if (!dir.x && !dir.y) return;
+  const bd = norm(b.vx, b.vy);
+  if (bd.l < 20) return;
+
+  const cross = bd.x * dir.y - bd.y * dir.x; // how much of it is sideways
+  const along = bd.x * dir.x + bd.y * dir.y; // and how much is along the ball
+  b.vx += -bd.y * cross * AT_SIDE * DT;
+  b.vy += bd.x * cross * AT_SIDE * DT;
+  b.vz += along * AT_LIFT * DT;
 }
 
 function moveBall(state) {

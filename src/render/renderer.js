@@ -8,8 +8,10 @@
  */
 
 import {
-  BALL_R, COURT, PLAYER_R, PLAYER_PRESETS, POINT_NAMES, SKIN_TONES, WORLD_H, WORLD_W,
+  BALL_R, CHARGE_MAX, COURT, PLAYER_R, PLAYER_PRESETS, POINT_NAMES, REACH, SKIN_TONES,
+  WORLD_H, WORLD_W,
 } from '../constants.js';
+import { predictLanding } from '../game/ai.js';
 import { drawCourt } from './court.js';
 import { STRIDE, facing, kitSprites } from './sprites.js';
 
@@ -60,6 +62,7 @@ export class Renderer {
     ctx.imageSmoothingEnabled = false;
     ctx.drawImage(this.court, this.offX, this.offY, WORLD_W * this.zoom, WORLD_H * this.zoom);
 
+    this.drawLanding(state);
     // The far player first, so the near one overlaps him at the net.
     const order = [...state.players].sort((a, b) => a.y - b.y);
     for (const p of order) this.drawPlayer(state, p);
@@ -67,6 +70,32 @@ export class Renderer {
     this.drawScore(state);
     if (state.message) this.drawMessage(state.message);
     if (net) this.drawNetInfo(net);
+  }
+
+  /**
+   * A ring where the ball is going to land.
+   *
+   * Height is nearly impossible to read from above - a ball coming at you and a
+   * ball sailing over you look much the same - so the game says where it will
+   * come down. Every tennis game worth playing does something like this, and
+   * without it you cannot time a swing at all.
+   */
+  drawLanding(state) {
+    const b = state.ball;
+    if (!b.live || b.z < 6 || state.phase === 'point') return;
+    const side = b.vy > 0 ? 1 : -1;
+    const spot = predictLanding(state, side, { maxTicks: 200 });
+    if (!spot || spot.ticks > 190) return;
+
+    const at = this.toScreen(spot.x, spot.y);
+    const near = Math.max(0, 1 - spot.ticks / 90); // tightens as it arrives
+    const r = (16 - near * 7) * this.zoom;
+    const ctx = this.ctx;
+    ctx.strokeStyle = `rgba(232, 255, 77, ${0.35 + near * 0.45})`;
+    ctx.lineWidth = Math.max(1, (1 + near) * this.zoom);
+    ctx.beginPath();
+    ctx.ellipse(at.x, at.y, r, r * 0.5, 0, 0, Math.PI * 2);
+    ctx.stroke();
   }
 
   drawPlayer(state, p) {
@@ -91,7 +120,42 @@ export class Renderer {
     const sprite = sprites[`${view}${frame}`] || sprites[view];
 
     ctx.drawImage(sprite, Math.round(at.x - sprite.width / 2), Math.round(at.y - sprite.height * 0.86));
-    this.drawRacket(p, at, view);
+    this.drawRacket(state, p, at, view);
+    this.drawWindup(state, p, at);
+  }
+
+  /**
+   * What the player is doing with the button, on screen.
+   *
+   * A bar that fills as he winds up, and a ring around him when the ball is
+   * close enough to hit. Between them they answer the only two questions the
+   * game was not answering: am I swinging, and is it now?
+   */
+  drawWindup(state, p, at) {
+    const ctx = this.ctx;
+    const b = state.ball;
+
+    if (p.charging || p.swing > 0) {
+      const t = Math.min(1, p.charge / CHARGE_MAX);
+      const w = 26 * this.zoom;
+      const y = at.y + 8 * this.zoom;
+      ctx.fillStyle = 'rgba(6, 20, 26, 0.6)';
+      ctx.fillRect(at.x - w / 2, y, w, 3 * this.zoom);
+      // Yellow while there is still something to gain, white once it is full.
+      ctx.fillStyle = t >= 1 ? '#ffffff' : '#e8ff4d';
+      ctx.fillRect(at.x - w / 2, y, w * t, 3 * this.zoom);
+    }
+
+    const reachable = b.live && Math.hypot(b.x - p.x, b.y - p.y) < REACH && b.z < 150;
+    if (reachable) {
+      ctx.strokeStyle = p.charging || p.swing > 0
+        ? 'rgba(255, 255, 255, 0.85)'
+        : 'rgba(232, 255, 77, 0.55)';
+      ctx.lineWidth = Math.max(1, 1.5 * this.zoom);
+      ctx.beginPath();
+      ctx.ellipse(at.x, at.y, REACH * 0.7 * this.zoom, REACH * 0.42 * this.zoom, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
   }
 
   /**
@@ -100,12 +164,15 @@ export class Renderer {
    * player standing still and a player mid-swing are the same figure with the
    * racket somewhere else.
    */
-  drawRacket(p, at, view) {
+  drawRacket(state, p, at, view) {
     const ctx = this.ctx;
-    const swinging = p.swing > 0;
+    const wind = Math.min(1, p.charge / CHARGE_MAX);
+    const swinging = p.swing > 0 || p.charging;
     const side = view === 'left' ? -1 : 1;
-    const reach = (swinging ? 15 : 9) * this.zoom;
-    const lift = (swinging ? 12 : 6) * this.zoom;
+    // Winding up takes the racket back and down behind him; the further back it
+    // is, the harder the shot is going to be.
+    const reach = (swinging ? 15 + wind * 10 : 9) * this.zoom * (p.charging ? -0.8 : 1);
+    const lift = (swinging ? 12 - wind * 10 : 6) * this.zoom;
     const x = at.x + side * reach;
     const y = at.y - lift - 6 * this.zoom;
 

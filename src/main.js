@@ -7,7 +7,9 @@
  */
 
 import { FRAME_TIME, TICK_RATE } from './constants.js';
-import { InputDevices, loadBindings } from './input.js';
+import {
+  ACTIONS, InputDevices, PRESETS, findConflicts, keyLabel, loadBindings, saveBindings,
+} from './input.js';
 import { TouchControls, isTouchDevice } from './touch.js';
 import { createMatch, callScore, hashState } from './game/state.js';
 import { step } from './game/sim.js';
@@ -33,7 +35,11 @@ const audio = new AudioEngine();
 const music = new Chiptune(audio);
 const speech = new Speech(audio, commentary);
 const sfx = new Sfx(audio, speech);
-const devices = new InputDevices(loadBindings());
+// Its own key, like the high score table: the football game is on this domain
+// too, and it does not even mean the same thing by the same buttons.
+const KEYS_STORAGE = 'webtennis.bindings';
+const bindings = loadBindings(KEYS_STORAGE);
+const devices = new InputDevices(bindings);
 // Without this nothing is listening to the keyboard at all - the match starts,
 // and then the server stands there holding the ball for ever.
 devices.attach();
@@ -317,6 +323,125 @@ function renderScores(level, freshPlace = 0) {
     ? 'Biggest win first. You have to win the match to get on the board.'
     : 'Nothing here yet. Beat the CPU at this level and the board is yours.';
 }
+
+
+// --- Changing the keys -------------------------------------------------------
+//
+// The same arrangement as websoccer, on the same shared input module. The labels
+// are this game's own, because "kick or slide" means nothing here.
+
+const KEY_LABELS = {
+  up: 'Up',
+  down: 'Down',
+  left: 'Left',
+  right: 'Right',
+  fire: 'Serve / swing',
+  switch: 'Lob',
+};
+
+const keysBody = document.getElementById('keysBody');
+const bindHint = document.getElementById('bindHint');
+let listeningFor = null;
+
+function setBindHint(text, warn = false) {
+  bindHint.textContent = text;
+  bindHint.classList.toggle('warn', warn);
+}
+
+function renderBindings() {
+  const clashing = new Set();
+  for (const clash of findConflicts(bindings)) {
+    clashing.add(`${clash.a.slot}:${clash.a.action}`);
+    clashing.add(`${clash.b.slot}:${clash.b.action}`);
+  }
+
+  keysBody.innerHTML = '';
+  for (const action of ACTIONS) {
+    const row = document.createElement('tr');
+    const name = document.createElement('td');
+    name.textContent = KEY_LABELS[action];
+    row.appendChild(name);
+
+    for (let slot = 0; slot < 2; slot++) {
+      const cell = document.createElement('td');
+      const button = document.createElement('button');
+      const id = `${slot}:${action}`;
+      const waiting = listeningFor && listeningFor.slot === slot && listeningFor.action === action;
+      button.className = 'bind';
+      button.dataset.bind = id;
+      button.textContent = waiting ? 'press a key' : keyLabel(bindings[slot][action]);
+      if (waiting) button.classList.add('listening');
+      if (clashing.has(id)) button.classList.add('clash');
+      button.addEventListener('click', () => {
+        listeningFor = { slot, action };
+        setBindHint('Press the key you want to use, or Escape to cancel.');
+        renderBindings();
+      });
+      cell.appendChild(button);
+      row.appendChild(cell);
+    }
+    keysBody.appendChild(row);
+  }
+
+  for (const select of document.querySelectorAll('[data-preset]')) {
+    const slot = Number(select.dataset.preset);
+    const current = PRESETS.find((p) => ACTIONS.every((a) => p.bindings[a] === bindings[slot][a]));
+    select.innerHTML = '';
+    for (const preset of PRESETS) {
+      const option = document.createElement('option');
+      option.value = preset.key;
+      option.textContent = preset.label;
+      if (current && current.key === preset.key) option.selected = true;
+      select.appendChild(option);
+    }
+    if (!current) {
+      const option = document.createElement('option');
+      option.value = 'custom';
+      option.textContent = 'Custom';
+      option.selected = true;
+      select.appendChild(option);
+    }
+  }
+
+  if (clashing.size) {
+    setBindHint('Those keys overlap. Fine on your own, but two players need separate keys.', true);
+  } else if (!listeningFor) {
+    setBindHint('Click a key to change it.');
+  }
+}
+
+// Capture phase and always prevented: otherwise pressing Space would activate
+// the button that still has focus and immediately ask for another key.
+window.addEventListener('keydown', (e) => {
+  if (!listeningFor) return;
+  e.preventDefault();
+  e.stopPropagation();
+  if (e.code === 'Escape') {
+    listeningFor = null;
+    renderBindings();
+    return;
+  }
+  const { slot, action } = listeningFor;
+  listeningFor = null;
+  bindings[slot][action] = e.code;
+  devices.setBindings(bindings);
+  devices.down.clear(); // the key we just captured never gets a keyup we care about
+  saveBindings(bindings, KEYS_STORAGE);
+  renderBindings();
+}, true);
+
+for (const select of document.querySelectorAll('[data-preset]')) {
+  select.addEventListener('change', () => {
+    const preset = PRESETS.find((p) => p.key === select.value);
+    if (!preset) return;
+    bindings[Number(select.dataset.preset)] = { ...preset.bindings };
+    devices.setBindings(bindings);
+    saveBindings(bindings);
+    renderBindings();
+  });
+}
+
+renderBindings();
 
 // --- Menu --------------------------------------------------------------------
 

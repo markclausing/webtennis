@@ -57,8 +57,31 @@ export const REACH = 46;
 export const SWING_TICKS = 16;
 export const SWING_COOLDOWN = 8;
 
-/** Charging a shot: the same idea as the football game's kick. */
-export const CHARGE_MAX = 26;
+/** Steering the ball after you have hit it, as in the football game. */
+export const AFTERTOUCH_TICKS = 60; // one second
+export const AT_SIDE = 340;
+export const AT_LIFT = 190;
+
+/**
+ * Winding up.
+ *
+ * You hold the button to prepare the shot and let the ball come onto it: the
+ * longer you have been winding when the ball arrives, the harder you hit it and
+ * the closer it goes to where you aimed. A shot started at the last moment still
+ * connects, it just sprays. That is the whole skill of the game - reading where
+ * the ball is going early enough to be ready for it - and it is why the racket
+ * goes back on screen as you hold.
+ */
+export const CHARGE_MAX = 45;
+
+/**
+ * How far off a shot goes when it is thrown at the ball with no preparation,
+ * as a fraction of half the court's width. A full wind-up takes it to nothing.
+ */
+export const RUSHED_SCATTER = 0.55;
+
+/** How long the swing stays open after you let go, if the ball is not there yet. */
+export const SWING_WINDOW = 22;
 export const SHOT_MIN = 520; // a blocked return
 export const SHOT_MAX = 900; // a full drive
 export const LOB_CHARGE = 16; // hold past this and it goes up instead of through

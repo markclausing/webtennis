@@ -39,8 +39,20 @@ packages to install.
   get two serves, and the second one is worth taking care over.
 - **Hold** the button to hit harder. Hold longer still and the ball goes up
   instead of through — a lob, for when your opponent is at the net.
+- **Start early.** Holding the button is winding up, not waiting to fire: the
+  shot goes off by itself when the ball arrives, with however much wind-up you
+  have by then. The longer you have been holding, the harder you hit it *and* the
+  closer it goes to where you aimed — a shot thrown at the ball at the last
+  moment sprays. On screen that is the bar under your player and the racket going
+  back behind him.
+- **The ring on the court** is where the ball will come down, and the ring around
+  your player means it is in reach. Height is nearly unreadable from above, so
+  the game says it outright.
 - **Steer while you swing** to place it: sideways sends it across the court,
-  forward drives it deep, back drops it short.
+  forward drives it deep, back drops it short. **Keep steering for a second after
+  contact** and the ball bends in the air.
+- **Lob** puts it over somebody standing at the net.
+- **Every key can be changed** in the menu, or take a preset.
 - On a phone you get a stick and two buttons; turn it sideways.
 
 The rules are the real ones, because they are what makes tennis tennis: the ball
