@@ -1,0 +1,13 @@
+{
+  "name": "webtennis",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Arcade tennis in the browser, on a deterministic simulation. Shares its engine with websoccer.",
+  "scripts": {
+    "start": "node server/relay.js",
+    "test": "node tools/simtest.js && node tools/sync-shared.js",
+    "test:sim": "node tools/simtest.js",
+    "test:shared": "node tools/sync-shared.js"
+  }
+}

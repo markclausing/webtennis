@@ -1,0 +1,124 @@
+# WebTennis
+
+Arcade tennis in the browser, in the spirit of the 16-bit classics: a court seen
+from above, two small players, one button, and a ball that has to land in.
+**1 player against the CPU**, **2 players on one keyboard**, or **online** with a
+four-character room code.
+
+No dependencies, no build step. HTML, CSS and JavaScript exactly as the browser
+receives them.
+
+It is the second game built this way. The first is
+[websoccer](https://github.com/markclausing/websoccer), and the two share their
+engine — see [Shared with websoccer](#shared-with-websoccer).
+
+## Getting started
+
+```bash
+git clone https://github.com/markclausing/webtennis.git
+cd webtennis
+npm start
+```
+
+Then open http://localhost:5173/. There is no `npm install`; there are no
+packages to install.
+
+## Controls
+
+|              | Player 1 (blue) | Player 2 (red) |
+| ------------ | --------------- | -------------- |
+| Move         | `W A S D`       | Arrow keys     |
+| Serve / hit  | `Space`         | `Enter`        |
+| Pause        | `Esc`           |                |
+
+- **Serving** is two presses: one throws the ball up, the second hits it. You
+  get two serves, and the second one is worth taking care over.
+- **Hold** the button to hit harder. Hold longer still and the ball goes up
+  instead of through — a lob, for when your opponent is at the net.
+- **Steer while you swing** to place it: sideways sends it across the court,
+  forward drives it deep, back drops it short.
+- On a phone you get a stick and two buttons; turn it sideways.
+
+The rules are the real ones, because they are what makes tennis tennis: the ball
+has to land in, it may bounce once, a serve has to find the diagonal box, and the
+score runs fifteen, thirty, forty, deuce, advantage. A set is won by two clear
+games.
+
+## How it plays
+
+Three difficulty settings, and what separates them is measured rather than
+guessed. The strongest lever is a delay before the CPU sets off after the ball —
+reading the shot early is most of what makes a good player look quick. The second
+is how far its aim strays, **and that aim is allowed to stray past the lines**.
+That last part sounds like a detail and is not: an earlier version clamped every
+shot into the court, which meant the CPU could not miss, made no errors at any
+level, and easy and hard finished level with each other. Games taken off HARD
+over four matches: EASY 6, NORMAL 17, HARD 22.
+
+Points end the way they do in tennis: at HARD against itself, 93% of them are
+winners and 7% aces; against EASY, a quarter of the points are errors.
+
+## Shared with websoccer
+
+Eleven files are identical in both games — the input mask, the touch controls,
+the lockstep netcode, the relay, the Cloudflare Worker, the high score table, the
+three-letter name entry, the formant speech synthesiser and the maths. They are
+shared by being the same file in both repositories rather than by a package,
+because neither game has a build step and neither is going to grow one for this.
+
+Copying is only worth anything if somebody notices when the copies part ways:
+
+```bash
+node tools/sync-shared.js          # are they still the same?
+node tools/sync-shared.js --pull   # take websoccer's copy
+node tools/sync-shared.js --push   # send this one back
+```
+
+It runs as part of `npm test`, so a change on one side shows up as a failing test
+on the other rather than as a mystery six months later. It expects websoccer to
+be checked out beside this repository, and says so and passes if it is not.
+
+Nothing that knows what sport it is gets shared. The simulation, the court, the
+sounds and the words are each game's own — a shared file full of `if (tennis)`
+would be worse than two files.
+
+## The umpire
+
+The score is called out loud by the same formant synthesiser websoccer uses for
+its commentator: a buzz through three sharp filters, which is roughly what the
+speech chips of the era did. The voice is shared; the words are not. Tennis is
+the easy case for a talking scoreboard, because the calls have not changed in a
+century — love, fifteen, thirty, forty, deuce, advantage, game.
+
+## Tests
+
+```bash
+npm test              # the lot
+npm run test:sim      # whole matches headless: determinism, scoring, the rules
+npm run test:shared   # the shared files, against websoccer next door
+```
+
+The scoring is tested by driving points straight through the scorer rather than
+by playing, because deuce, advantage and advantage-lost take a long time to reach
+by playing and are exactly where a scoreboard goes subtly wrong.
+
+## What is not there yet
+
+- No tiebreak: a long set is settled by the first player to get two games past
+  the target rather than at seven points.
+- No doubles, no second set, no tournament.
+- The CPU plays from the baseline and does not come to the net.
+- The players are the football game's figures with a racket drawn on. They will
+  do until somebody draws a tennis player.
+- No icons and no title screen art yet.
+- Online works, but you need a relay: `npm start` gives you one for your own
+  machine, and `src/config.js` is where a Cloudflare Worker address goes. The
+  Worker is in `worker/` and is the same one websoccer uses.
+
+## Licence
+
+[MIT](LICENSE).
+
+An original tribute to the top-down sports games of the nineties: no code,
+artwork or other parts of any existing game, and no affiliation with their makers
+or rights holders.

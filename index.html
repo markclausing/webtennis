@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <title>WebTennis</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0d1b20">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head>
+<body>
+  <div id="app">
+    <canvas id="court" tabindex="0"></canvas>
+
+    <div id="touch" class="hidden">
+      <div id="stick"><div id="knob"></div></div>
+      <div class="touchButtons">
+        <button id="btnHit" class="touchBtn">HIT</button>
+        <button id="btnLob" class="touchBtn small">LOB</button>
+      </div>
+    </div>
+
+    <div id="rotate">Turn your phone sideways to play</div>
+
+    <div id="menu" class="overlay">
+      <div class="panel">
+        <h1>WEB<span>TENNIS</span></h1>
+        <p class="tag">HTML / JavaScript &middot; local &amp; online</p>
+
+        <div class="row">
+          <label>Mode</label>
+          <div class="btns">
+            <button data-mode="1" class="active">1 player</button>
+            <button data-mode="2">2 players</button>
+            <button data-mode="online">Online</button>
+          </div>
+        </div>
+
+        <div class="row" id="difficultyRow">
+          <label>CPU skill</label>
+          <div class="btns">
+            <button data-difficulty="easy">Easy</button>
+            <button data-difficulty="normal" class="active">Normal</button>
+            <button data-difficulty="hard">Hard</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <label>Sound</label>
+          <div class="btns">
+            <button data-sound="on" class="active">On</button>
+            <button data-sound="off">Off</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <label>Umpire</label>
+          <div class="btns">
+            <button data-umpire="on" class="active">On</button>
+            <button data-umpire="off">Off</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <label for="length">Set length</label>
+          <select id="length">
+            <option value="2">Short (2 games)</option>
+            <option value="3" selected>Normal (3 games)</option>
+            <option value="6">Full set (6 games)</option>
+          </select>
+        </div>
+
+        <details id="controlsBox">
+          <summary>Controls</summary>
+          <table class="keys">
+            <thead>
+              <tr><th></th><th>Player 1 (blue)</th><th>Player 2 (red)</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Move</td><td><code>W A S D</code></td><td>Arrow keys</td></tr>
+              <tr><td>Serve / hit</td><td><code>Space</code></td><td><code>Enter</code></td></tr>
+              <tr><td>Pause</td><td><code>Esc</code></td><td></td></tr>
+            </tbody>
+          </table>
+          <ul class="hints">
+            <li><b>Serving:</b> press once to throw the ball up, again to hit it.</li>
+            <li><b>Hold</b> the button to hit harder; hold longer still and it goes up as a lob.</li>
+            <li><b>Steer while you swing</b> to place the ball: sideways puts it across the
+              court, forward drives it deep, back drops it short.</li>
+            <li>You have two serves. Miss both and the point is gone.</li>
+          </ul>
+        </details>
+
+        <details id="scoresBox">
+          <summary>High scores <span id="scoresLevel" class="shape"></span></summary>
+          <table class="scores"><tbody id="scoresBody"></tbody></table>
+          <p id="scoresNote" class="fineprint"></p>
+        </details>
+
+        <div id="onlineSetup" class="hidden">
+          <p class="explain">
+            One player opens a match and passes on the code; the other enters it.
+            Whoever opens the match plays <b>blue</b>, the second player <b>red</b>.
+          </p>
+          <div id="roomCode" class="code hidden"></div>
+          <p id="onlineStatus" class="status"></p>
+          <div class="joinrow">
+            <input id="joinCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false">
+            <button id="join">JOIN</button>
+          </div>
+          <p class="fineprint">
+            Needs a relay: run <code>npm start</code> yourself, or put the address of a
+            Cloudflare Worker in <code>src/config.js</code>. See the README.
+          </p>
+        </div>
+
+        <div class="panelFooter">
+          <button id="start" class="primary">PLAY</button>
+          <button id="host" class="primary hidden">OPEN A NEW MATCH</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="hiscore" class="overlay hidden">
+      <div class="panel small">
+        <h2>HIGH SCORE</h2>
+        <p id="hiscoreLine" class="status"></p>
+        <div id="hiscoreLetters" class="letters"></div>
+        <p class="fineprint">
+          Up and down for the letter, left and right to move along, hit to confirm.
+          Typing works too.
+        </p>
+      </div>
+    </div>
+
+    <div id="pause" class="overlay hidden">
+      <div class="panel small">
+        <h2>PAUSED</h2>
+        <p class="status">Esc to carry on.</p>
+        <button id="quit" class="primary">BACK TO THE MENU</button>
+      </div>
+    </div>
+
+    <div id="netend" class="overlay hidden">
+      <div class="panel small">
+        <h2 id="netendTitle">MATCH OVER</h2>
+        <p id="netendText" class="status"></p>
+        <button id="netendBack" class="primary">BACK TO THE MENU</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
