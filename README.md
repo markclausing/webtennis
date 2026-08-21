@@ -115,9 +115,26 @@ by playing and are exactly where a scoreboard goes subtly wrong.
 - The players are the football game's figures with a racket drawn on. They will
   do until somebody draws a tennis player.
 - No icons and no title screen art yet.
-- Online works, but you need a relay: `npm start` gives you one for your own
-  machine, and `src/config.js` is where a Cloudflare Worker address goes. The
-  Worker is in `worker/` and is the same one websoccer uses.
+- The CPU never comes to the net, so there is no serve and volley to play
+  against.
+
+## The relay
+
+Online play and the shared high score board run on a Cloudflare Worker of this
+game's own — the same code websoccer uses, deployed separately on purpose. The
+board lives in a single Durable Object under one key, so one Worker serving both
+games would mean one table with football and tennis results mixed into it. Two
+Workers, two boards. They post into the same Discord channel, which is only a
+webhook address and does not care which game is talking.
+
+```bash
+cd worker && npx wrangler login && npx wrangler deploy
+npx wrangler secret put DISCORD_WEBHOOK   # optional: announce new entries
+npx wrangler secret put ADMIN_KEY         # optional: lets you clean the board
+```
+
+Then put the address it prints in `src/config.js` as `DEFAULT_RELAY`, with
+`wss://`.
 
 ## Licence
 

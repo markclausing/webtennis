@@ -17,7 +17,7 @@
  *
  *   export const DEFAULT_RELAY = 'wss://webtennis.your-name.workers.dev';
  */
-export const DEFAULT_RELAY = '';
+export const DEFAULT_RELAY = 'wss://webtennis.vibecoach.workers.dev';
 
 /**
  * Which relay this page should talk to. A `?relay=` in the address always wins,
