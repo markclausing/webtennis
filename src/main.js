@@ -39,7 +39,9 @@ const devices = new InputDevices(loadBindings());
 devices.attach();
 const touch = new TouchControls();
 const renderer = new Renderer(canvas);
-const highscores = new Highscores();
+// Its own key: the football game is on the same domain and its table is not
+// this table.
+const highscores = new Highscores(globalThis.localStorage, 'webtennis.highscores.v1');
 
 let soundOn = globalThis.localStorage?.getItem('webtennis.sound') !== 'off';
 sfx.talking = globalThis.localStorage?.getItem('webtennis.umpire') !== 'off';
