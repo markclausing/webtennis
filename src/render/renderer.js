@@ -146,7 +146,10 @@ export class Renderer {
   drawPlayer(state, p) {
     const ctx = this.ctx;
     const kit = kitFor(p.index);
-    const sprites = kitSprites(kit, this.zoom * 1.5, kit.id);
+    // Drawn bigger than the court's scale would suggest: at the true size the
+    // players are a handful of pixels on a court this wide, and you cannot read
+    // a stance you cannot see.
+    const sprites = kitSprites(kit, this.zoom * 2.1, kit.id);
     const at = this.toScreen(p.x, p.y);
 
     // Shadow, so he stands on the court rather than floating over it.

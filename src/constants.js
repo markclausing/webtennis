@@ -53,13 +53,20 @@ export const AIR_DRAG = 0.32;
 export const SPIN_DRIFT = 90; // sideways pull per unit of spin
 
 // The players.
-export const PLAYER_R = 9;
+export const PLAYER_R = 11;
 export const PLAYER_SPEED = 235;
 export const PLAYER_ACC = 1500;
 export const PLAYER_DAMP = 0.82;
 
-/** How far from the ball you can still reach it, and for how long a swing lasts. */
-export const REACH = 46;
+/**
+ * How far from the ball you can still reach it, and for how long a swing lasts.
+ *
+ * Generous on purpose. Standing in exactly the right place is not the skill this
+ * game is about - the timing and the shape of the shot are - and at a tighter
+ * reach the two of them were being decided by whether you had judged the last
+ * step correctly.
+ */
+export const REACH = 62;
 export const SWING_TICKS = 16;
 export const SWING_COOLDOWN = 8;
 

@@ -56,6 +56,11 @@ packages to install.
 - **Nothing tells you how hard you are hitting it either.** The racket does: back
   and down as you wind up, through the ball on contact. A bar with a number's
   worth of precision in it was doing the judging for you.
+- **You do not have to be exactly right.** The reach is generous and the players
+  are drawn bigger than the court's own scale, because standing on precisely the
+  right blade of grass is not the skill this game is about - the timing and the
+  shape of the shot are, and a tight reach was deciding both of them by whether
+  you had judged the last step.
 - **Holding the button plants you.** While it is held the stick shapes the shot
   instead of moving your feet, which is the only way one stick does both jobs
   without fighting itself - and it decides what the wind-up is worth: commit
