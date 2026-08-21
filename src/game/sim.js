@@ -246,10 +246,14 @@ function aimPoint(state, i, aim, serving) {
       y: midY + aim.y * -p.dir * 40,
     };
   }
-  const depth = 0.62 + (aim.y * -p.dir) * 0.3; // forward drives deeper
+  // Both of these are deliberately short of the lines. Aim alone should not be
+  // able to put the ball out: you get to the corners by adding aftertouch, which
+  // is a thing you choose to do rather than a thing that happens because you were
+  // holding a direction to reach the ball in the first place.
+  const depth = 0.62 + (aim.y * -p.dir) * 0.18;
   return {
-    x: COURT.cx + aim.x * (COURT.right - COURT.cx - 14),
-    y: COURT.cy + (far - COURT.cy) * clamp(depth, 0.25, 1.06),
+    x: COURT.cx + aim.x * (COURT.right - COURT.cx) * 0.62,
+    y: COURT.cy + (far - COURT.cy) * clamp(depth, 0.32, 0.94),
   };
 }
 

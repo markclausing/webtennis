@@ -57,10 +57,19 @@ export const REACH = 46;
 export const SWING_TICKS = 16;
 export const SWING_COOLDOWN = 8;
 
-/** Steering the ball after you have hit it, as in the football game. */
+/**
+ * Steering the ball after you have hit it, as in the football game.
+ *
+ * Gentler than it was, because the stick does two jobs at once: it moves you and
+ * it aims the shot, so the direction you happen to be holding while you run the
+ * ball down is also the direction you hit it. At the old strength a full
+ * diagonal put the ball most of the width of the court past the sideline -
+ * measured at 1.78, where 1.0 is the line itself. Steering should bend a shot,
+ * not fling it.
+ */
 export const AFTERTOUCH_TICKS = 60; // one second
-export const AT_SIDE = 340;
-export const AT_LIFT = 190;
+export const AT_SIDE = 170;
+export const AT_LIFT = 100;
 
 /**
  * Winding up.

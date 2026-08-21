@@ -83,7 +83,7 @@ export function aiIntent(state, i) {
       intent.swing = true;
       intent.power = CHARGE_MAX * 0.85;
       intent.aim = {
-        x: corner + randRange(state, -1, 1) * (skill.aimError / 130),
+        x: corner + randRange(state, -1, 1) * (skill.aimError / 95),
         y: randRange(state, -1, 1) * (skill.aimError / 260),
       };
       void box;
@@ -129,7 +129,10 @@ export function aiIntent(state, i) {
     const side = them.x > COURT.cx ? -1 : 1;
     // Not clamped into the court: an opponent who cannot hit the ball out is an
     // opponent who never loses a point, and this is where the levels differ.
-    const error = randRange(state, -1, 1) * (skill.aimError / 90);
+    // Divided by less than it used to be, because aim now moves the ball less:
+    // softening the stick softened the CPU's mistakes with it, and easy stopped
+    // spraying the ball out - which was the whole difference between the levels.
+    const error = randRange(state, -1, 1) * (skill.aimError / 58);
     intent.swing = true;
     intent.power = CHARGE_MAX * (0.55 + randRange(state, 0, 0.3));
     intent.aim = { x: side * 0.7 + error, y: -p.dir * 0.4 + error * 0.4 };

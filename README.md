@@ -54,7 +54,10 @@ packages to install.
   worth of precision in it was doing the judging for you.
 - **Steer while you swing** to place it: sideways sends it across the court,
   forward drives it deep, back drops it short. **Keep steering for a second after
-  contact** and the ball bends in the air.
+  contact** and the ball bends in the air. Aim alone cannot put the ball out -
+  the stick moves you as well as aiming the shot, so the direction you are
+  holding to reach the ball should not fling it past the sideline. Going for the
+  lines takes aftertouch, which is a thing you choose to do.
 - **Lob** puts it over somebody standing at the net.
 - **Every key can be changed** in the menu, or take a preset.
 - On a phone you get a stick and two buttons, and the court is drawn *above*
