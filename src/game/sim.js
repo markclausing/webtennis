@@ -12,9 +12,9 @@
 
 import {
   AIR_DRAG, BALL_R, BOUNCE, BOUNCE_FRICTION, BTN, CHARGE_MAX, COURT, DT, GRAVITY,
-  LOB_CHARGE, NET_H, PLAYER_ACC, PLAYER_DAMP, PLAYER_R, PLAYER_SPEED, POINT_TICKS,
+  NET_H, PLAYER_ACC, PLAYER_DAMP, PLAYER_R, PLAYER_SPEED, POINT_TICKS,
   AFTERTOUCH_TICKS, AT_LIFT, AT_SIDE, BASE_ANGLE, DRIVE_DEPTH, DRIVE_FROM, NET_ANGLE,
-  PACE_COST, PACE_FREE, PACE_SPAN, REACH, RUNOFF,
+  HIT_HEIGHT, PACE_COPE, PACE_COST, PACE_FREE, PACE_SPAN, REACH, RUNOFF,
   RUSHED_AIM, RUSHED_LIFT, RUSHED_SCATTER, SERVE_MAX, SERVE_MIN,
   SHOT_MAX, SHOT_MIN, SPIN_DRIFT, SWING_COOLDOWN, SWING_TICKS, SWING_WINDOW,
   TOSS_HEIGHT, TOSS_TICKS, WORLD_H, WORLD_W,
@@ -171,7 +171,7 @@ function tryHit(state, i, intent) {
   // his shots made him *better*, because a slow ball is awkward to time.
   const stretch = p.human ? REACH : REACH * (p.ai.reach ?? 1);
   const away = Math.hypot(b.x - p.x, b.y - p.y);
-  if (away > stretch || b.z > 150) return;
+  if (away > stretch || b.z > HIT_HEIGHT) return;
   // The ball has to be on your own side, unless you are reaching over to volley
   // one that has not landed yet.
   const mySide = p.dir > 0 ? b.y > COURT.cy : b.y < COURT.cy;
@@ -187,9 +187,13 @@ function hit(state, i, intent, serving) {
   // The pace on the ball takes some of your preparation away with it: a ball
   // struck flat out at you is awkward however early you started, which is what
   // makes hitting hard worth anything against someone who gets to everything.
+  const ready = charge / CHARGE_MAX;
   const incoming = serving ? 0 : len(b.vx, b.vy);
-  const rushed = clamp((incoming - PACE_FREE) / PACE_SPAN, 0, 1) * PACE_COST;
-  const t = clamp(charge / CHARGE_MAX - rushed, 0, 1);
+  // Preparation is the answer to pace: wound up, you can redirect it; caught
+  // half ready, it runs you over.
+  const pace = clamp((incoming - PACE_FREE) / PACE_SPAN, 0, 1);
+  const rushed = pace * PACE_COST * (1 - PACE_COPE * ready);
+  const t = clamp(ready - rushed, 0, 1);
 
   // Where he is aiming: the stick picks a spot across the court and how deep,
   // and the wind-up pushes it deeper still.
@@ -213,7 +217,11 @@ function hit(state, i, intent, serving) {
 
   // Time of flight, and from that the height it has to be hit at to land there.
   // A lob is the same shot given longer to arrive.
-  const lofted = !serving && (intent.lob || charge > LOB_CHARGE);
+  // The lob is the lob button, and nothing else. It used to be "or a long enough
+  // hold", which quietly became "every firm shot" the moment the wind-up was
+  // shortened: the threshold sat below the ordinary range, so the CPU was lobbing
+  // the whole match and nobody could see why the ball floated.
+  const lofted = !serving && !!intent.lob;
   const flight = (flat / speed) * (lofted ? 1.75 : 1);
   b.spin = aim.x * 0.6;
 

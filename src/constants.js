@@ -59,6 +59,15 @@ export const PLAYER_ACC = 1500;
 export const PLAYER_DAMP = 0.82;
 
 /**
+ * How high a ball you can still play.
+ *
+ * High enough to volley one crossing the net: a shot aimed deep is near the top
+ * of its arc as it passes the net, so at a lower ceiling it sailed over the head
+ * of anybody standing there and volleying was all but impossible.
+ */
+export const HIT_HEIGHT = 210;
+
+/**
  * How far from the ball you can still reach it, and for how long a swing lasts.
  *
  * Generous on purpose. Standing in exactly the right place is not the skill this
@@ -94,7 +103,7 @@ export const AT_LIFT = 135;
  * the ball is going early enough to be ready for it - and it is why the racket
  * goes back on screen as you hold.
  */
-export const CHARGE_MAX = 45;
+export const CHARGE_MAX = 34;
 
 /**
  * What being late costs.
@@ -141,10 +150,12 @@ export const DRIVE_DEPTH = 0.42;
  * eats into the wind-up you had: below `PACE_FREE` it costs nothing, and by
  * `PACE_FREE + PACE_SPAN` it takes `PACE_COST` of a full swing away from you.
  *
- * This is what makes hitting hard worth anything against someone who gets to
- * everything. It cannot be outrun - it is charged at the moment of contact, so
- * being in position does not save you from it - and it is the same for both
- * players.
+ * Preparation is the answer to it. Being wound up when the ball arrives takes
+ * most of the cost away - `PACE_COPE` of it at a full swing - which is what lets
+ * a player who read the shot early redirect pace instead of merely surviving it.
+ * Without that, a fully wound swing against a fast ball still came off at 573
+ * where a gentle ball came off at 740: you could never hit hard in a rally, which
+ * is exactly what it felt like.
  */
 // Calibrated against what the ball is actually doing when it gets to you, not
 // what it was doing when it left: drag and the bounce take a third off it, so a
@@ -152,6 +163,7 @@ export const DRIVE_DEPTH = 0.42;
 export const PACE_FREE = 265;
 export const PACE_SPAN = 225;
 export const PACE_COST = 0.7;
+export const PACE_COPE = 0.65;
 
 /**
  * How much sharper the angles are at the net.
@@ -165,7 +177,8 @@ export const PACE_COST = 0.7;
  */
 export const BASE_ANGLE = 0.45;
 export const NET_ANGLE = 1.05;
-export const LOB_CHARGE = 16; // hold past this and it goes up instead of through
+// (There used to be a charge threshold for lobbing here. It is the lob button's
+// job now: a threshold inside the wind-up range means every hard shot floats.)
 
 /** A serve is its own shot: faster, and it has to be started with a toss. */
 // Measured against how often a serve goes unreturned: at 620-1020 nearly two

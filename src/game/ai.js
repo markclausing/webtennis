@@ -132,8 +132,12 @@ export function aiIntent(state, i) {
   // after the bounce, or low enough to be a volley worth playing.
   const worthHitting = state.bounces >= 1 ? b.z < 95 : b.z < 55;
   if (arriving && reachable && worthHitting && p.swing === 0 && p.cooldown === 0) {
-    // Aim away from where the other player is standing.
+    // Aim away from where the other player is standing - and if he has come to
+    // the net, put it over him instead. Without this, coming forward won every
+    // point on its own: a volley from the net is unanswerable if the answer is
+    // always another ball hit straight at it.
     const them = state.players[1 - i];
+    const theirNet = Math.abs(them.y - COURT.cy) < 150;
     const side = them.x > COURT.cx ? -1 : 1;
     // Not clamped into the court: an opponent who cannot hit the ball out is an
     // opponent who never loses a point, and this is where the levels differ.
@@ -147,7 +151,13 @@ export function aiIntent(state, i) {
     // this the better levels would drive every ball over the baseline.
     const drive = Math.max(0, skill.windup - DRIVE_FROM) / (1 - DRIVE_FROM);
     const shorter = clamp((0.77 - 0.62 - drive * DRIVE_DEPTH) / 0.18, -1.3, 0.6);
-    intent.aim = { x: side * 0.7 + error, y: -p.dir * shorter + error * 0.3 };
+    if (theirNet) {
+      // Over his head and deep, which is what a lob is for.
+      intent.lob = true;
+      intent.aim = { x: side * 0.35 + error * 0.5, y: -p.dir * shorter };
+    } else {
+      intent.aim = { x: side * 0.7 + error, y: -p.dir * shorter + error * 0.3 };
+    }
   }
   return intent;
 }

@@ -78,7 +78,8 @@ packages to install.
   the stick moves you as well as aiming the shot, so the direction you are
   holding to reach the ball should not fling it past the sideline. Going for the
   lines takes aftertouch, which is a thing you choose to do.
-- **Lob** puts it over somebody standing at the net.
+- **Lob** puts it over somebody standing at the net. It is the lob button and
+  nothing else - holding the swing longer makes the ball *harder*, never higher.
 - **Every key can be changed** in the menu, or take a preset.
 - On a phone you get a stick and two buttons, and the court is drawn *above*
   them rather than behind them: this game is played upright, so the bottom of
@@ -103,6 +104,10 @@ the words the umpire uses.
 ## Tactics
 
 Two things decide points beyond getting to the ball.
+
+**You can volley.** Anything up to head height can be played out of the air, so
+standing at the net is a real position rather than a place to watch balls go
+past. The CPU answers it by lobbing you, which is what a lob is for.
 
 **Pace forces errors.** The speed of the ball arriving eats into the wind-up you
 had, so a shot struck flat out is awkward to handle however early your opponent
