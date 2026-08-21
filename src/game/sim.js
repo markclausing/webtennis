@@ -13,7 +13,8 @@
 import {
   AIR_DRAG, BALL_R, BOUNCE, BOUNCE_FRICTION, BTN, CHARGE_MAX, COURT, DT, GRAVITY,
   LOB_CHARGE, NET_H, PLAYER_ACC, PLAYER_DAMP, PLAYER_R, PLAYER_SPEED, POINT_TICKS,
-  AFTERTOUCH_TICKS, AT_LIFT, AT_SIDE, DRIVE_DEPTH, DRIVE_FROM, REACH, RUNOFF,
+  AFTERTOUCH_TICKS, AT_LIFT, AT_SIDE, BASE_ANGLE, DRIVE_DEPTH, DRIVE_FROM, NET_ANGLE,
+  PACE_COST, PACE_FREE, PACE_SPAN, REACH, RUNOFF,
   RUSHED_AIM, RUSHED_LIFT, RUSHED_SCATTER, SERVE_MAX, SERVE_MIN,
   SHOT_MAX, SHOT_MIN, SPIN_DRIFT, SWING_COOLDOWN, SWING_TICKS, SWING_WINDOW,
   TOSS_HEIGHT, TOSS_TICKS, WORLD_H, WORLD_W,
@@ -183,7 +184,12 @@ function hit(state, i, intent, serving) {
   const p = state.players[i];
   const b = state.ball;
   const charge = clamp(p.charging || p.swing > 0 ? p.charge : (intent.power || 0), 0, CHARGE_MAX);
-  const t = charge / CHARGE_MAX;
+  // The pace on the ball takes some of your preparation away with it: a ball
+  // struck flat out at you is awkward however early you started, which is what
+  // makes hitting hard worth anything against someone who gets to everything.
+  const incoming = serving ? 0 : len(b.vx, b.vy);
+  const rushed = clamp((incoming - PACE_FREE) / PACE_SPAN, 0, 1) * PACE_COST;
+  const t = clamp(charge / CHARGE_MAX - rushed, 0, 1);
 
   // Where he is aiming: the stick picks a spot across the court and how deep,
   // and the wind-up pushes it deeper still.
@@ -287,11 +293,16 @@ function aimPoint(state, i, aim, serving, power = 0) {
   // something off it - which is what aftertouch backwards is for.
   const drive = Math.max(0, power - DRIVE_FROM) / (1 - DRIVE_FROM);
   const depth = 0.62 + (aim.y * -p.dir) * 0.18 + drive * DRIVE_DEPTH;
-  // How much of your placement survives depends on how ready you were.
+  // How much of your placement survives depends on how ready you were - and how
+  // sharp an angle is available depends on how far up the court you are standing.
   const control = RUSHED_AIM + (1 - RUSHED_AIM) * power;
+  const fromNet = clamp(Math.abs(p.y - COURT.cy) / Math.abs(far - COURT.cy), 0, 1);
+  const angle = NET_ANGLE - (NET_ANGLE - BASE_ANGLE) * fromNet;
   return {
-    x: COURT.cx + aim.x * (COURT.right - COURT.cx) * 0.45 * control,
-    y: COURT.cy + (far - COURT.cy) * clamp(depth, 0.32, 1.14),
+    x: COURT.cx + aim.x * (COURT.right - COURT.cx) * angle * control,
+    // From the net a sharp angle lands short by definition, so the shortest
+    // target allowed comes forward with you.
+    y: COURT.cy + (far - COURT.cy) * clamp(depth, 0.32 - (1 - fromNet) * 0.22, 1.14),
   };
 }
 

@@ -132,6 +132,39 @@ export const SHOT_MAX = 740;
  */
 export const DRIVE_FROM = 0.55;
 export const DRIVE_DEPTH = 0.42;
+
+/**
+ * What the pace coming at you costs.
+ *
+ * A ball you are handed at walking pace is easy to line up; one struck at you
+ * flat out is not, however early you started. So the speed of the ball arriving
+ * eats into the wind-up you had: below `PACE_FREE` it costs nothing, and by
+ * `PACE_FREE + PACE_SPAN` it takes `PACE_COST` of a full swing away from you.
+ *
+ * This is what makes hitting hard worth anything against someone who gets to
+ * everything. It cannot be outrun - it is charged at the moment of contact, so
+ * being in position does not save you from it - and it is the same for both
+ * players.
+ */
+// Calibrated against what the ball is actually doing when it gets to you, not
+// what it was doing when it left: drag and the bounce take a third off it, so a
+// shot struck at 740 arrives at about 490 and a gentle one at about 260.
+export const PACE_FREE = 265;
+export const PACE_SPAN = 225;
+export const PACE_COST = 0.7;
+
+/**
+ * How much sharper the angles are at the net.
+ *
+ * Standing at the net you are looking down both tramlines and the whole court is
+ * open in front of you; from the baseline the same angle would have to travel
+ * the length of the court to get there and simply cannot. `NET_ANGLE` is the
+ * lateral reach of a shot played from the net, against `BASE_ANGLE` from the
+ * back. The price is paid automatically: standing that close, the next ball
+ * arrives before you have finished admiring this one.
+ */
+export const BASE_ANGLE = 0.45;
+export const NET_ANGLE = 1.05;
 export const LOB_CHARGE = 16; // hold past this and it goes up instead of through
 
 /** A serve is its own shot: faster, and it has to be started with a toss. */

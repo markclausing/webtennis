@@ -100,6 +100,26 @@ score runs fifteen, thirty, forty, deuce, advantage. A set is won by two clear
 games, and the score goes up in the middle of the screen after every point, in
 the words the umpire uses.
 
+## Tactics
+
+Two things decide points beyond getting to the ball.
+
+**Pace forces errors.** The speed of the ball arriving eats into the wind-up you
+had, so a shot struck flat out is awkward to handle however early your opponent
+started - it cannot be outrun, because it is charged at the moment of contact.
+Measured against the CPU, feeding it the same ball at different speeds: at 262
+px/s on arrival it comes back 52% of the way down the court, at 336 it comes back
+short and sitting up, and at 414 and above it does not come back at all.
+
+**The net opens the angles.** How sharp a shot you can play depends on how far up
+the court you are standing: from the baseline a full sideways swing moves the
+ball 26% of the way to the sideline, from the service line 45%, and from the net
+53% - and aftertouch adds to all of them. The price is paid automatically. Stand
+that close and the next ball is on you before you have finished admiring this
+one.
+
+The CPU does not come to the net, so for now that half of it is yours alone.
+
 ## How it plays
 
 Three difficulty settings, and what separates them is measured rather than
