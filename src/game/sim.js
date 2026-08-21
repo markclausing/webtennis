@@ -14,7 +14,7 @@ import {
   AIR_DRAG, BALL_R, BOUNCE, BOUNCE_FRICTION, BTN, CHARGE_MAX, COURT, DT, GRAVITY,
   LOB_CHARGE, NET_H, PLAYER_ACC, PLAYER_DAMP, PLAYER_R, PLAYER_SPEED, POINT_TICKS,
   AFTERTOUCH_TICKS, AT_LIFT, AT_SIDE, DRIVE_DEPTH, DRIVE_FROM, REACH, RUNOFF,
-  RUSHED_SCATTER, SERVE_MAX, SERVE_MIN,
+  RUSHED_AIM, RUSHED_LIFT, RUSHED_SCATTER, SERVE_MAX, SERVE_MIN,
   SHOT_MAX, SHOT_MIN, SPIN_DRIFT, SWING_COOLDOWN, SWING_TICKS, SWING_WINDOW,
   TOSS_HEIGHT, TOSS_TICKS, WORLD_H, WORLD_W,
 } from '../constants.js';
@@ -224,7 +224,12 @@ function hit(state, i, intent, serving) {
   const slowing = 1 - Math.min(0.45, AIR_DRAG * flight * 0.5);
   b.vx = (dx - drift) / flight / slowing;
   b.vy = dy / flight / slowing;
-  b.vz = (0 - b.z) / flight + 0.5 * GRAVITY * flight;
+  // A late swing gets under the ball less, so it leaves flatter than the arc it
+  // was aimed along - and a flat ball from the back of the court finds the net.
+  // This is the punishment for being late that a player can actually read: the
+  // ball goes into the tape rather than mysteriously somewhere else.
+  const lift = serving ? 1 : RUSHED_LIFT + (1 - RUSHED_LIFT) * t;
+  b.vz = ((0 - b.z) / flight + 0.5 * GRAVITY * flight) * lift;
   b.live = true;
 
   state.lastHitter = i;
@@ -282,8 +287,10 @@ function aimPoint(state, i, aim, serving, power = 0) {
   // something off it - which is what aftertouch backwards is for.
   const drive = Math.max(0, power - DRIVE_FROM) / (1 - DRIVE_FROM);
   const depth = 0.62 + (aim.y * -p.dir) * 0.18 + drive * DRIVE_DEPTH;
+  // How much of your placement survives depends on how ready you were.
+  const control = RUSHED_AIM + (1 - RUSHED_AIM) * power;
   return {
-    x: COURT.cx + aim.x * (COURT.right - COURT.cx) * 0.45,
+    x: COURT.cx + aim.x * (COURT.right - COURT.cx) * 0.45 * control,
     y: COURT.cy + (far - COURT.cy) * clamp(depth, 0.32, 1.14),
   };
 }

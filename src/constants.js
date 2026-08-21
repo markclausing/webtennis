@@ -90,10 +90,19 @@ export const AT_LIFT = 135;
 export const CHARGE_MAX = 45;
 
 /**
- * How far off a shot goes when it is thrown at the ball with no preparation,
- * as a fraction of half the court's width. A full wind-up takes it to nothing.
+ * What being late costs.
+ *
+ * Three things, and only the first is luck. `RUSHED_SCATTER` is how far a shot
+ * strays when it is thrown at the ball with no preparation. `RUSHED_AIM` is how
+ * much of your placement you keep: a rushed shot goes more or less straight back
+ * whatever you ask of it, and only a full wind-up can be put in a corner - which
+ * is what "more precise" should mean, something you can feel rather than a dice
+ * roll. And `RUSHED_LIFT` is the flattest part: a shot played late barely gets
+ * under the ball, so it comes off low and finds the net.
  */
-export const RUSHED_SCATTER = 0.55;
+export const RUSHED_SCATTER = 0.35;
+export const RUSHED_AIM = 0.3;
+export const RUSHED_LIFT = 0.4;
 
 /** How long the swing stays open after you let go, if the ball is not there yet. */
 export const SWING_WINDOW = 22;
