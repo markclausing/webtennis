@@ -34,6 +34,9 @@ const music = new Chiptune(audio);
 const speech = new Speech(audio, commentary);
 const sfx = new Sfx(audio, speech);
 const devices = new InputDevices(loadBindings());
+// Without this nothing is listening to the keyboard at all - the match starts,
+// and then the server stands there holding the ball for ever.
+devices.attach();
 const touch = new TouchControls();
 const renderer = new Renderer(canvas);
 const highscores = new Highscores();

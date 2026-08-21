@@ -14,9 +14,9 @@ html, body {
   user-select: none;
 }
 
-#game { touch-action: none; }
+#court { touch-action: none; }
 
-#wrap {
+#app {
   position: relative;
   width: 100vw;
   /* 100vh on iOS counts the browser chrome, so the bottom of the layout - the
@@ -28,15 +28,17 @@ html, body {
   place-items: center;
 }
 
-#game {
-  width: min(100vw, calc(100vh * 900 / 620));
-  height: auto;
-  max-height: 100vh;
-  max-height: 100dvh;
+/* The court is taller than it is wide and the renderer letterboxes it itself,
+   so the canvas simply takes the whole window in either orientation - which is
+   also why this game does not ask you to turn your phone sideways. */
+#court {
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  display: block;
   image-rendering: pixelated;
-  background: #0d3d18;
+  background: #0d1b20;
   outline: none;
-  box-shadow: 0 0 0 2px #000, 0 18px 60px rgba(0, 0, 0, 0.6);
 }
 
 .overlay {

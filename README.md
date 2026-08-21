@@ -8,6 +8,8 @@ four-character room code.
 No dependencies, no build step. HTML, CSS and JavaScript exactly as the browser
 receives them.
 
+![A rally in progress: the blue player at the baseline about to serve, the red player waiting in the service court, seen from above](docs/screenshots/gameplay.png)
+
 It is the second game built this way. The first is
 [websoccer](https://github.com/markclausing/websoccer), and the two share their
 engine — see [Shared with websoccer](#shared-with-websoccer).
@@ -22,6 +24,8 @@ npm start
 
 Then open http://localhost:5173/. There is no `npm install`; there are no
 packages to install.
+
+![The menu: mode, CPU skill, sound, umpire and set length, with the court dimmed behind it](docs/screenshots/menu.png)
 
 ## Controls
 

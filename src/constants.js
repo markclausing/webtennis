@@ -69,8 +69,12 @@ export const LOB_CHARGE = 16; // hold past this and it goes up instead of throug
 // eleven, with rallies of three or four shots.
 export const SERVE_MIN = 520;
 export const SERVE_MAX = 820;
-export const TOSS_HEIGHT = 190;
-export const TOSS_TICKS = 70; // how long you have to hit it before it comes down
+// The toss has to be up long enough to hit on the way down, and the window has
+// to outlast the flight: at 190 high and 70 ticks the ball was still above
+// hitting height when the toss timed out, so a human could never serve at all -
+// the CPU only managed it because it swings the instant the ball starts falling.
+export const TOSS_HEIGHT = 135;
+export const TOSS_TICKS = 105;
 
 export const BTN = { UP: 1, DOWN: 2, LEFT: 4, RIGHT: 8, FIRE: 16, SWITCH: 32 };
 
