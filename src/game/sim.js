@@ -102,14 +102,30 @@ function humanIntent(state, i, mask) {
   if (fire && !wasFire) {
     p.charging = true;
     p.charge = 0;
+    p.aimX = 0;
+    p.aimY = 0;
+    p.aimTicks = 0;
   }
   if (p.charging) {
     p.charge = Math.min(p.charge + 1, CHARGE_MAX);
+    // Where the shot goes is the average of the direction you held while winding
+    // up, not the direction you happen to be holding at the moment of contact.
+    //
+    // This is where the fine control comes from. The stick has eight positions
+    // and nothing in between, so an instantaneous reading gives you three
+    // choices per side and no feel at all. Held for a quarter of the wind-up it
+    // is a quarter of the angle; held throughout it is all of it - and that is a
+    // dial you can learn.
+    p.aimX += dir.x;
+    p.aimY += dir.y;
+    p.aimTicks++;
     if (!fire) {
       p.charging = false;
       p.swing = Math.max(p.swing, SWING_WINDOW);
     }
   }
+  const held = Math.max(1, p.aimTicks || 0);
+  intent.aim = { x: (p.aimX || 0) / held, y: (p.aimY || 0) / held };
   intent.swinging = p.charging || p.swing > 0;
   intent.power = p.charge;
   return intent;
@@ -147,8 +163,13 @@ function tryHit(state, i, intent) {
   if (serving && !p.tossing) return;
   if (!serving && state.lastHitter === i && state.bounces === 0) return; // you cannot hit it twice
 
+  // A weaker opponent simply cannot stretch as far. Blunt, but it is the one
+  // handicap that cannot backfire: reaction time and running speed stopped
+  // mattering once the receiver stood in the right place, and taking pace off
+  // his shots made him *better*, because a slow ball is awkward to time.
+  const stretch = p.human ? REACH : REACH * (p.ai.reach ?? 1);
   const away = Math.hypot(b.x - p.x, b.y - p.y);
-  if (away > REACH || b.z > 150) return;
+  if (away > stretch || b.z > 150) return;
   // The ball has to be on your own side, unless you are reaching over to volley
   // one that has not landed yet.
   const mySide = p.dir > 0 ? b.y > COURT.cy : b.y < COURT.cy;
@@ -252,7 +273,7 @@ function aimPoint(state, i, aim, serving) {
   // holding a direction to reach the ball in the first place.
   const depth = 0.62 + (aim.y * -p.dir) * 0.18;
   return {
-    x: COURT.cx + aim.x * (COURT.right - COURT.cx) * 0.62,
+    x: COURT.cx + aim.x * (COURT.right - COURT.cx) * 0.45,
     y: COURT.cy + (far - COURT.cy) * clamp(depth, 0.32, 0.94),
   };
 }
@@ -264,7 +285,11 @@ function aimPoint(state, i, aim, serving) {
 function movePlayer(state, i, intent) {
   const p = state.players[i];
   const handicap = p.human ? 1 : p.ai.speed;
-  const speed = PLAYER_SPEED * handicap * (p.swing > 0 ? 0.55 : 1);
+  // Winding up shortens your stride as much as swinging does. Steering and
+  // running are the same stick, so without this a player who wants to angle the
+  // ball walks off it while he asks - and the fine control the angle is supposed
+  // to give him is unusable.
+  const speed = PLAYER_SPEED * handicap * (p.swing > 0 || p.charging ? 0.55 : 1);
   const l = len(intent.x, intent.y);
   if (l > 0.02) {
     p.faceX = intent.x / l;

@@ -36,7 +36,11 @@ packages to install.
 | Pause        | `Esc`           |                |
 
 - **Serving** is two presses: one throws the ball up, the second hits it. You
-  get two serves, and the second one is worth taking care over.
+  get two serves, and the second one is worth taking care over. Both players are
+  put where the rules put them - server behind his own baseline, on the right for
+  an even point and the left for an odd one, receiver in front of the box the
+  ball has to land in - and that box is lit up while you get ready, so which way
+  the serve is going is never a guess.
 - **Hold** the button to hit harder. Hold longer still and the ball goes up
   instead of through — a lob, for when your opponent is at the net.
 - **Start early.** Holding the button is winding up, not waiting to fire: the
@@ -54,7 +58,11 @@ packages to install.
   worth of precision in it was doing the judging for you.
 - **Steer while you swing** to place it: sideways sends it across the court,
   forward drives it deep, back drops it short. **Keep steering for a second after
-  contact** and the ball bends in the air. Aim alone cannot put the ball out -
+  contact** and the ball bends in the air. How far it bends is how *long* you
+  hold it, not which of eight directions you pushed: a quarter of a second is a
+  nudge, a full second walks the ball across half the court. That is where the
+  placement lives, and it is meant to be felt rather than aimed. Aim alone cannot
+  put the ball out -
   the stick moves you as well as aiming the shot, so the direction you are
   holding to reach the ball should not fling it past the sideline. Going for the
   lines takes aftertouch, which is a thing you choose to do.
@@ -69,7 +77,8 @@ packages to install.
 The rules are the real ones, because they are what makes tennis tennis: the ball
 has to land in, it may bounce once, a serve has to find the diagonal box, and the
 score runs fifteen, thirty, forty, deuce, advantage. A set is won by two clear
-games.
+games, and the score goes up in the middle of the screen after every point, in
+the words the umpire uses.
 
 ## How it plays
 

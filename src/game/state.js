@@ -87,6 +87,10 @@ function makePlayer(index, human, dir, ai) {
     cooldown: 0,
     charge: 0,
     charging: false,
+    // The direction held while winding up, summed and averaged at contact.
+    aimX: 0,
+    aimY: 0,
+    aimTicks: 0,
     prevMask: 0,
     // A serve is a toss and then a hit; this counts down the time the ball is up.
     tossing: false,
@@ -133,14 +137,28 @@ export function setupServe(state) {
   const server = state.players[state.server];
   const receiver = state.players[1 - state.server];
   const right = servingRight(state);
-  const side = right ? 1 : -1;
+  const box = serviceBox(state);
 
-  server.x = COURT.cx + side * 70 * (server.dir > 0 ? 1 : -1);
-  server.y = ownBaseline(server) + server.dir * -26;
-  receiver.x = COURT.cx + side * 80 * (receiver.dir > 0 ? -1 : 1);
+  // Both of them stand where the rules put them, and between them they say which
+  // way this serve is going without a word on screen.
+  //
+  // The server is on his own right for an even point and his left for an odd
+  // one, which is what "deuce court" and "advantage court" mean, and he stands
+  // *behind* his baseline - he used to be placed inside it, which looked like a
+  // man about to serve from the service line.
+  const side = right ? 1 : -1;
+  server.x = COURT.cx + side * 76 * (server.dir > 0 ? 1 : -1);
+  server.y = ownBaseline(server) + server.dir * 26;
+
+  // The receiver stands in front of the box the ball has to land in, which is
+  // diagonally opposite. Taken from the box itself rather than worked out again:
+  // one of them was inverted, so the receiver waited on the wrong side of the
+  // court for every serve.
+  const boxMiddle = (box.x0 + box.x1) / 2;
+  receiver.x = boxMiddle + (boxMiddle - COURT.cx) * 0.3;
   // Well behind the baseline, which is where a returner stands and why a serve
   // is returnable at all.
-  receiver.y = ownBaseline(receiver) + receiver.dir * -70;
+  receiver.y = ownBaseline(receiver) + receiver.dir * 70;
 
   for (const p of state.players) {
     p.vx = 0;

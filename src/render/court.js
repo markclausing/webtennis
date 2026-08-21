@@ -20,9 +20,16 @@ export function drawCourt(ctx) {
   ctx.fillStyle = SURROUND;
   ctx.fillRect(0, 0, WORLD_W, WORLD_H);
 
-  // The playing surface, doubles width, with a margin of run-off around it.
+  // The playing surface, doubles width, with a margin of run-off around it. The
+  // run-off behind the baselines is generous because that is where a returner
+  // actually stands - painted short, he appeared to be waiting off the court.
   ctx.fillStyle = SURFACE;
-  ctx.fillRect(COURT.left - ALLEY - 26, COURT.top - 52, (COURT.right - COURT.left) + (ALLEY + 26) * 2, (COURT.bottom - COURT.top) + 104);
+  ctx.fillRect(
+    COURT.left - ALLEY - 30,
+    COURT.top - 100,
+    (COURT.right - COURT.left) + (ALLEY + 30) * 2,
+    (COURT.bottom - COURT.top) + 200,
+  );
 
   ctx.strokeStyle = LINE;
   ctx.lineWidth = 3;

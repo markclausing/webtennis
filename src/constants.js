@@ -68,8 +68,8 @@ export const SWING_COOLDOWN = 8;
  * not fling it.
  */
 export const AFTERTOUCH_TICKS = 60; // one second
-export const AT_SIDE = 170;
-export const AT_LIFT = 100;
+export const AT_SIDE = 125;
+export const AT_LIFT = 80;
 
 /**
  * Winding up.
@@ -146,12 +146,12 @@ export const SKIN_TONES = [
  */
 export const AI_LEVELS = {
   easy: {
-    key: 'easy', label: 'EASY', reactTicks: 9, aimError: 90, speed: 0.86, swingEarly: 10,
+    key: 'easy', label: 'EASY', reactTicks: 9, aimError: 90, speed: 0.86, windup: 0.78, reach: 0.7,
   },
   normal: {
-    key: 'normal', label: 'NORMAL', reactTicks: 5, aimError: 45, speed: 0.94, swingEarly: 5,
+    key: 'normal', label: 'NORMAL', reactTicks: 5, aimError: 45, speed: 0.94, windup: 0.88, reach: 0.76,
   },
   hard: {
-    key: 'hard', label: 'HARD', reactTicks: 1, aimError: 26, speed: 1, swingEarly: 1,
+    key: 'hard', label: 'HARD', reactTicks: 1, aimError: 26, speed: 1, windup: 0.95, reach: 1,
   },
 };

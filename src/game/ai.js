@@ -81,7 +81,7 @@ export function aiIntent(state, i) {
       // Out wide or down the middle, alternately, with the level's inaccuracy.
       const corner = (state.games[i] + state.points[i]) % 2 === 0 ? wide * 0.7 : -wide * 0.2;
       intent.swing = true;
-      intent.power = CHARGE_MAX * 0.85;
+      intent.power = CHARGE_MAX * clamp(skill.windup, 0.3, 1);
       intent.aim = {
         x: corner + randRange(state, -1, 1) * (skill.aimError / 95),
         y: randRange(state, -1, 1) * (skill.aimError / 260),
@@ -123,7 +123,14 @@ export function aiIntent(state, i) {
   const reachable = Math.hypot(b.x - p.x, b.y - p.y) < REACH * 0.8 && b.z < 130;
   const mySide = p.dir > 0 ? b.y > COURT.cy : b.y < COURT.cy;
   const arriving = coming && b.live && mySide && state.bounces < 2;
-  if (arriving && reachable && p.swing === 0 && p.cooldown === 0) {
+  // Wait for a ball worth hitting. Swinging the moment it comes within reach
+  // means taking it high and early, off balance, and the shot that comes out of
+  // that is poor - which produced a result that made no sense until it was
+  // looked at: giving a level a *shorter* reach made it stronger, because being
+  // unable to lunge forced it to let the ball come. So everyone lets it come:
+  // after the bounce, or low enough to be a volley worth playing.
+  const worthHitting = state.bounces >= 1 ? b.z < 95 : b.z < 55;
+  if (arriving && reachable && worthHitting && p.swing === 0 && p.cooldown === 0) {
     // Aim away from where the other player is standing.
     const them = state.players[1 - i];
     const side = them.x > COURT.cx ? -1 : 1;
@@ -134,7 +141,7 @@ export function aiIntent(state, i) {
     // spraying the ball out - which was the whole difference between the levels.
     const error = randRange(state, -1, 1) * (skill.aimError / 58);
     intent.swing = true;
-    intent.power = CHARGE_MAX * (0.55 + randRange(state, 0, 0.3));
+    intent.power = CHARGE_MAX * clamp(skill.windup - 0.15 + randRange(state, 0, 0.3), 0.1, 1);
     intent.aim = { x: side * 0.7 + error, y: -p.dir * 0.4 + error * 0.4 };
   }
   return intent;

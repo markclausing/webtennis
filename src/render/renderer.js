@@ -11,6 +11,7 @@ import {
   BALL_R, CHARGE_MAX, COURT, PLAYER_R, PLAYER_PRESETS, POINT_NAMES, REACH, SKIN_TONES,
   SWING_COOLDOWN, WORLD_H, WORLD_W,
 } from '../constants.js';
+import { callScore, serviceBox } from '../game/state.js';
 import { drawCourt } from './court.js';
 import { STRIDE, facing, kitSprites } from './sprites.js';
 
@@ -65,13 +66,81 @@ export class Renderer {
     ctx.imageSmoothingEnabled = false;
     ctx.drawImage(this.court, this.offX, this.offY, WORLD_W * this.zoom, WORLD_H * this.zoom);
 
+    if (state.phase === 'serve') this.drawServiceBox(state);
     // The far player first, so the near one overlaps him at the net.
     const order = [...state.players].sort((a, b) => a.y - b.y);
     for (const p of order) this.drawPlayer(state, p);
     this.drawBall(state);
     this.drawScore(state);
-    if (state.message) this.drawMessage(state.message);
+    if (state.phase === 'point' || state.phase === 'over') this.drawPointCard(state);
+    else if (state.message) this.drawMessage(state.message);
     if (net) this.drawNetInfo(net);
+  }
+
+  /**
+   * The box this serve has to land in, lit up while he is getting ready.
+   *
+   * Which way a serve is going is a rule, not a guess - it alternates every
+   * point and crosses the court - but nothing on screen said so, and two players
+   * standing in the right places only tells you if you already knew the rule.
+   * It goes out the moment the ball is struck.
+   */
+  drawServiceBox(state) {
+    const box = serviceBox(state);
+    const a = this.toScreen(box.x0, box.y0);
+    const b = this.toScreen(box.x1, box.y1);
+    const ctx = this.ctx;
+    ctx.fillStyle = 'rgba(232, 255, 77, 0.09)';
+    ctx.fillRect(a.x, a.y, b.x - a.x, b.y - a.y);
+    ctx.strokeStyle = 'rgba(232, 255, 77, 0.45)';
+    ctx.lineWidth = Math.max(1, 1.5 * this.zoom);
+    ctx.strokeRect(a.x, a.y, b.x - a.x, b.y - a.y);
+  }
+
+  /**
+   * The score, in the middle of the screen, for as long as the point is over.
+   *
+   * The corner panel is for glancing at mid-rally; this is the thing you
+   * actually want between points, which is when tennis tells you where you are.
+   * The umpire says the same words at the same moment.
+   */
+  drawPointCard(state) {
+    const ctx = this.ctx;
+    const scale = Math.max(1, this.zoom);
+    const mid = this.canvas.width / 2;
+    const top = this.canvas.height * 0.34;
+
+    const call = state.phase === 'over'
+      ? state.message
+      : callScore(state).toUpperCase();
+    const games = `GAMES  ${state.games[0]} - ${state.games[1]}`;
+    const why = state.phase === 'over' ? '' : state.message;
+
+    const w = 300 * scale;
+    const h = (why ? 132 : 108) * scale;
+    ctx.fillStyle = 'rgba(6, 20, 26, 0.82)';
+    ctx.fillRect(mid - w / 2, top, w, h);
+    ctx.strokeStyle = 'rgba(232, 255, 77, 0.5)';
+    ctx.lineWidth = Math.max(1, 1.5 * scale);
+    ctx.strokeRect(mid - w / 2, top, w, h);
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    let y = top + 26 * scale;
+    if (why) {
+      ctx.font = `${13 * scale}px "Courier New", monospace`;
+      ctx.fillStyle = '#9fc7c0';
+      ctx.fillText(why, mid, y);
+      y += 30 * scale;
+    }
+    ctx.font = `bold ${26 * scale}px "Courier New", monospace`;
+    ctx.fillStyle = '#ffe14d';
+    ctx.fillText(call, mid, y);
+    y += 34 * scale;
+    ctx.font = `${13 * scale}px "Courier New", monospace`;
+    ctx.fillStyle = '#9fc7c0';
+    ctx.fillText(games, mid, y);
+    ctx.textAlign = 'left';
   }
 
   drawPlayer(state, p) {
