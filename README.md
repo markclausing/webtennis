@@ -45,9 +45,13 @@ packages to install.
   closer it goes to where you aimed — a shot thrown at the ball at the last
   moment sprays. On screen that is the bar under your player and the racket going
   back behind him.
-- **The ring on the court** is where the ball will come down, and the ring around
-  your player means it is in reach. Height is nearly unreadable from above, so
-  the game says it outright.
+- **Nothing tells you where the ball will land.** Read the shadow: it spreads and
+  fades as the ball climbs, and draws in tight and dark as it drops. That, and a
+  faint mark under your player when the ball is in reach, is all the help there
+  is - judging depth and picking your moment is the game.
+- **Nothing tells you how hard you are hitting it either.** The racket does: back
+  and down as you wind up, through the ball on contact. A bar with a number's
+  worth of precision in it was doing the judging for you.
 - **Steer while you swing** to place it: sideways sends it across the court,
   forward drives it deep, back drops it short. **Keep steering for a second after
   contact** and the ball bends in the air.

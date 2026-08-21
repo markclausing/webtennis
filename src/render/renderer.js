@@ -9,9 +9,8 @@
 
 import {
   BALL_R, CHARGE_MAX, COURT, PLAYER_R, PLAYER_PRESETS, POINT_NAMES, REACH, SKIN_TONES,
-  WORLD_H, WORLD_W,
+  SWING_COOLDOWN, WORLD_H, WORLD_W,
 } from '../constants.js';
-import { predictLanding } from '../game/ai.js';
 import { drawCourt } from './court.js';
 import { STRIDE, facing, kitSprites } from './sprites.js';
 
@@ -66,7 +65,6 @@ export class Renderer {
     ctx.imageSmoothingEnabled = false;
     ctx.drawImage(this.court, this.offX, this.offY, WORLD_W * this.zoom, WORLD_H * this.zoom);
 
-    this.drawLanding(state);
     // The far player first, so the near one overlaps him at the net.
     const order = [...state.players].sort((a, b) => a.y - b.y);
     for (const p of order) this.drawPlayer(state, p);
@@ -74,32 +72,6 @@ export class Renderer {
     this.drawScore(state);
     if (state.message) this.drawMessage(state.message);
     if (net) this.drawNetInfo(net);
-  }
-
-  /**
-   * A ring where the ball is going to land.
-   *
-   * Height is nearly impossible to read from above - a ball coming at you and a
-   * ball sailing over you look much the same - so the game says where it will
-   * come down. Every tennis game worth playing does something like this, and
-   * without it you cannot time a swing at all.
-   */
-  drawLanding(state) {
-    const b = state.ball;
-    if (!b.live || b.z < 6 || state.phase === 'point') return;
-    const side = b.vy > 0 ? 1 : -1;
-    const spot = predictLanding(state, side, { maxTicks: 200 });
-    if (!spot || spot.ticks > 190) return;
-
-    const at = this.toScreen(spot.x, spot.y);
-    const near = Math.max(0, 1 - spot.ticks / 90); // tightens as it arrives
-    const r = (16 - near * 7) * this.zoom;
-    const ctx = this.ctx;
-    ctx.strokeStyle = `rgba(232, 255, 77, ${0.35 + near * 0.45})`;
-    ctx.lineWidth = Math.max(1, (1 + near) * this.zoom);
-    ctx.beginPath();
-    ctx.ellipse(at.x, at.y, r, r * 0.5, 0, 0, Math.PI * 2);
-    ctx.stroke();
   }
 
   drawPlayer(state, p) {
@@ -123,71 +95,89 @@ export class Renderer {
     const frame = moving ? Math.floor(phase / STRIDE) % 2 : 0;
     const sprite = sprites[`${view}${frame}`] || sprites[view];
 
-    ctx.drawImage(sprite, Math.round(at.x - sprite.width / 2), Math.round(at.y - sprite.height * 0.86));
+    // Winding up leans him away from the shot, so the whole figure coils rather
+    // than only the racket moving. A few pixels is enough to read.
+    const coil = p.charging ? -Math.min(1, p.charge / CHARGE_MAX) * 4 * this.zoom : 0;
+    const lean = view === 'left' ? -coil : coil;
+    ctx.drawImage(sprite,
+      Math.round(at.x - sprite.width / 2 + lean),
+      Math.round(at.y - sprite.height * 0.86));
     this.drawRacket(state, p, at, view);
     this.drawWindup(state, p, at);
   }
 
   /**
-   * What the player is doing with the button, on screen.
+   * The one thing left on screen: a faint mark under the player when the ball is
+   * close enough to hit.
    *
-   * A bar that fills as he winds up, and a ring around him when the ball is
-   * close enough to hit. Between them they answer the only two questions the
-   * game was not answering: am I swinging, and is it now?
+   * Everything else that used to be here - a ring where the ball would land, a
+   * bar reading out exactly how hard the shot was going to be - has gone. Both
+   * were answers to questions the game is more interesting for asking: how deep
+   * is that ball, and how hard have I hit this. What is left tells you the ball
+   * is within reach and nothing about what you are going to do with it.
    */
   drawWindup(state, p, at) {
     const ctx = this.ctx;
     const b = state.ball;
-
-    if (p.charging || p.swing > 0) {
-      const t = Math.min(1, p.charge / CHARGE_MAX);
-      const w = 26 * this.zoom;
-      const y = at.y + 8 * this.zoom;
-      ctx.fillStyle = 'rgba(6, 20, 26, 0.6)';
-      ctx.fillRect(at.x - w / 2, y, w, 3 * this.zoom);
-      // Yellow while there is still something to gain, white once it is full.
-      ctx.fillStyle = t >= 1 ? '#ffffff' : '#e8ff4d';
-      ctx.fillRect(at.x - w / 2, y, w * t, 3 * this.zoom);
-    }
-
     const reachable = b.live && Math.hypot(b.x - p.x, b.y - p.y) < REACH && b.z < 150;
-    if (reachable) {
-      ctx.strokeStyle = p.charging || p.swing > 0
-        ? 'rgba(255, 255, 255, 0.85)'
-        : 'rgba(232, 255, 77, 0.55)';
-      ctx.lineWidth = Math.max(1, 1.5 * this.zoom);
-      ctx.beginPath();
-      ctx.ellipse(at.x, at.y, REACH * 0.7 * this.zoom, REACH * 0.42 * this.zoom, 0, 0, Math.PI * 2);
-      ctx.stroke();
-    }
+    if (!reachable) return;
+
+    ctx.strokeStyle = p.charging || p.swing > 0
+      ? 'rgba(255, 255, 255, 0.4)'
+      : 'rgba(232, 255, 77, 0.22)';
+    ctx.lineWidth = Math.max(1, this.zoom);
+    ctx.beginPath();
+    ctx.ellipse(at.x, at.y + 3 * this.zoom, REACH * 0.55 * this.zoom, REACH * 0.3 * this.zoom, 0, 0, Math.PI * 2);
+    ctx.stroke();
   }
 
   /**
-   * The racket: a little frame on the end of an arm, on whichever side he is
-   * swinging. Drawn rather than baked into the sprite because it moves - a
-   * player standing still and a player mid-swing are the same figure with the
-   * racket somewhere else.
+   * The racket, and with it the whole shot.
+   *
+   * This is now the only readout of how hard you are about to hit: it goes back
+   * and down as you wind up, and comes through on contact. Judging that by eye
+   * is the game - a bar with a number's worth of precision in it was doing the
+   * judging for you.
    */
   drawRacket(state, p, at, view) {
     const ctx = this.ctx;
     const wind = Math.min(1, p.charge / CHARGE_MAX);
-    const swinging = p.swing > 0 || p.charging;
     const side = view === 'left' ? -1 : 1;
-    // Winding up takes the racket back and down behind him; the further back it
-    // is, the harder the shot is going to be.
-    const reach = (swinging ? 15 + wind * 10 : 9) * this.zoom * (p.charging ? -0.8 : 1);
-    const lift = (swinging ? 12 - wind * 10 : 6) * this.zoom;
-    const x = at.x + side * reach;
-    const y = at.y - lift - 6 * this.zoom;
+    const z = this.zoom;
 
-    ctx.strokeStyle = '#e8e2d0';
-    ctx.lineWidth = Math.max(1, 1.5 * this.zoom);
+    // Three poses: waiting, winding up, and following through.
+    let reach = 9 * z;
+    let lift = 6 * z;
+    let tilt = side * 0.4;
+    if (p.charging) {
+      // Behind him, dropping as it goes back. The further back, the harder.
+      reach = -(8 + wind * 22) * z;
+      lift = (2 - wind * 10) * z;
+      tilt = side * (0.4 + wind * 0.9);
+    } else if (p.cooldown > 0) {
+      // Through the ball and up: the follow-through, which is what tells you the
+      // shot has gone rather than that you are still waiting to hit it.
+      const t = p.cooldown / SWING_COOLDOWN;
+      reach = (14 + (1 - t) * 12) * z;
+      lift = (14 + (1 - t) * 10) * z;
+      tilt = side * 0.1;
+    } else if (p.swing > 0) {
+      reach = 15 * z;
+      lift = 10 * z;
+    }
+
+    const x = at.x + side * reach;
+    const y = at.y - lift - 6 * z;
+    const shoulder = { x: at.x + side * 4 * z, y: at.y - 8 * z };
+
+    ctx.strokeStyle = '#f2ece0';
+    ctx.lineWidth = Math.max(1.5, 2 * z);
     ctx.beginPath();
-    ctx.moveTo(at.x + side * 4 * this.zoom, at.y - 8 * this.zoom);
+    ctx.moveTo(shoulder.x, shoulder.y);
     ctx.lineTo(x, y);
     ctx.stroke();
     ctx.beginPath();
-    ctx.ellipse(x, y, 5 * this.zoom, 6.5 * this.zoom, side * 0.4, 0, Math.PI * 2);
+    ctx.ellipse(x, y, 6 * z, 7.5 * z, tilt, 0, Math.PI * 2);
     ctx.stroke();
   }
 
@@ -197,12 +187,15 @@ export class Renderer {
     const ground = this.toScreen(b.x, b.y);
     const lift = b.z * 0.6 * this.zoom;
 
-    // The shadow is where the ball really is; the ball itself is drawn lifted,
-    // which is the only way height reads at all from above.
-    const shade = Math.max(0.08, 0.34 - b.z / 900);
-    ctx.fillStyle = `rgba(10, 25, 30, ${shade})`;
+    // The shadow is where the ball really is, and with the landing ring gone it
+    // is how you read depth: it spreads and fades as the ball climbs, and draws
+    // in tight and dark as it drops, which is the cue to swing.
+    const high = Math.min(1, b.z / 160);
+    const shade = 0.42 - high * 0.28;
+    const spread = 1 + high * 1.5;
+    ctx.fillStyle = `rgba(8, 22, 28, ${shade})`;
     ctx.beginPath();
-    ctx.ellipse(ground.x, ground.y, BALL_R * this.zoom, BALL_R * 0.55 * this.zoom, 0, 0, Math.PI * 2);
+    ctx.ellipse(ground.x, ground.y, BALL_R * spread * this.zoom, BALL_R * 0.6 * spread * this.zoom, 0, 0, Math.PI * 2);
     ctx.fill();
 
     const r = (BALL_R + Math.min(2.5, b.z / 90)) * this.zoom;
