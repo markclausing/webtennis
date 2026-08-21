@@ -90,7 +90,14 @@ function beginMatch(state, transport) {
   pauseBox.classList.add('hidden');
   netendBox.classList.add('hidden');
   canvas.focus();
-  if (onTouchDevice) touch.show(true);
+  if (onTouchDevice) {
+    touch.show(true);
+    // Leave the bottom of the screen to the controls: in portrait that strip is
+    // your own baseline, and a thumb parked over your own player is no way to
+    // play. Measured in canvas pixels, which are not CSS pixels on a phone.
+    const dpr = Math.min(2, globalThis.devicePixelRatio || 1);
+    renderer.bottomInset = 172 * dpr;
+  }
   music.stop();
   sizeCanvas();
 }
@@ -124,6 +131,7 @@ function toMenu() {
   pauseBox.classList.add('hidden');
   netendBox.classList.add('hidden');
   touch.show(false);
+  renderer.bottomInset = 0;
   if (soundOn) music.start();
   setOnlineStatus('');
   roomCode.classList.add('hidden');

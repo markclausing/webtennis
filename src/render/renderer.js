@@ -28,6 +28,9 @@ export class Renderer {
     this.court = null;
     this.zoom = 1;
     this.strides = new Map();
+    // Room kept clear at the bottom for the on-screen controls, in canvas
+    // pixels. Nothing on a keyboard needs it.
+    this.bottomInset = 0;
   }
 
   /** One offscreen court, painted the first time it is needed. */
@@ -41,7 +44,8 @@ export class Renderer {
   }
 
   fit() {
-    const { width, height } = this.canvas;
+    const { width } = this.canvas;
+    const height = Math.max(80, this.canvas.height - this.bottomInset);
     this.zoom = Math.min(width / WORLD_W, height / WORLD_H);
     this.offX = (width - WORLD_W * this.zoom) / 2;
     this.offY = (height - WORLD_H * this.zoom) / 2;

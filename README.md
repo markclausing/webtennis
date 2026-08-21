@@ -53,7 +53,11 @@ packages to install.
   contact** and the ball bends in the air.
 - **Lob** puts it over somebody standing at the net.
 - **Every key can be changed** in the menu, or take a preset.
-- On a phone you get a stick and two buttons; turn it sideways.
+- On a phone you get a stick and two buttons, and the court is drawn *above*
+  them rather than behind them: this game is played upright, so the bottom of
+  the screen is your own baseline and a thumb parked over your own player is no
+  way to play. Nothing asks you to turn the phone sideways - a tennis court is
+  taller than it is wide.
 
 The rules are the real ones, because they are what makes tennis tennis: the ball
 has to land in, it may bounce once, a serve has to find the diagonal box, and the

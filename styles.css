@@ -294,7 +294,28 @@ details[open] summary { color: #ffe14d; }
 
 details .keys { margin-top: 0; }
 
-/* --- touch controls --- */
+/* A narrow screen has no room for a label beside its buttons: at 390 pixels the
+   options wrapped into a ragged stack with one button stranded on the line
+   above. The label goes over the top instead. */
+@media (max-width: 520px) {
+  .row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  .row label {
+    width: auto;
+  }
+
+  .btns { flex-wrap: wrap; }
+}
+
+/* --- touch controls ---
+   The court is letterboxed into the space above these rather than sitting
+   behind them: this game is played in portrait, so the bottom of the screen is
+   your own baseline, and a thumb parked on top of your own player is no way to
+   play. The renderer is told how much room to leave. */
 
 #touch {
   position: absolute;
@@ -326,7 +347,7 @@ details .keys { margin-top: 0; }
   margin: 0;
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  background: rgba(255, 225, 77, 0.75);
+  background: rgba(232, 255, 77, 0.75);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
@@ -347,78 +368,30 @@ details .keys { margin-top: 0; }
   border-width: 3px;
 }
 
-#btnKick {
-  width: 108px;
-  height: 108px;
+/* HIT is the button you hold for the whole point, so it is the big one and it
+   sits nearest the thumb; LOB is the occasional one and sits above and inside. */
+#btnHit {
+  width: 112px;
+  height: 112px;
   font-size: 15px;
-  background: rgba(255, 225, 77, 0.85);
-  color: #12331d;
-  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(232, 255, 77, 0.85);
+  color: #10333f;
+  border-color: rgba(255, 255, 255, 0.55);
 }
 
-#btnSwap {
-  width: 74px;
-  height: 74px;
-  background: rgba(28, 74, 42, 0.85);
-  color: #e8f2e8;
+#btnLob {
+  width: 76px;
+  height: 76px;
+  margin-bottom: 26px;
+  background: rgba(26, 74, 92, 0.85);
+  color: #e8f2f4;
   border-color: rgba(255, 255, 255, 0.35);
 }
 
 #touchButtons button.pressed { filter: brightness(1.35); transform: scale(0.94); }
 
-/* Portrait on a phone is unplayable: the pitch ends up a few centimetres tall. */
-#rotate { display: none; }
-
-@media (orientation: portrait) and (pointer: coarse) {
-  #rotate {
-    position: absolute;
-    inset: 0;
-    z-index: 20;
-    display: grid;
-    place-items: center;
-    padding: 40px;
-    text-align: center;
-    font-size: 20px;
-    line-height: 1.6;
-    color: #ffe14d;
-    background: #0a1a0f;
-  }
-}
-
-/* --- Line-up editor ------------------------------------------------------ */
-
-.shape {
-  color: #7ea888;
-  font-weight: normal;
-  margin-left: 6px;
-}
-
-details[open] .shape { color: #b9d6c0; }
-
-#lineupPresets { margin: 10px 0; }
-
-#lineupPresets button.active { border-color: #ffe14d; }
-
-.pitchWrap {
-  display: flex;
-  justify-content: center;
-  margin: 4px 0 10px;
-}
-
-#unused-lineupPitch {
-  border-radius: 4px;
-  cursor: grab;
-  /* Dragging a player must not scroll the menu underneath it. */
-  touch-action: none;
-  max-width: 100%;
-}
-
-#lineupPitch:active { cursor: grabbing; }
-
-#lineupNote {
-  min-height: 2.4em;
-  margin: 0;
-}
+/* A tennis court is taller than it is wide, so portrait is the right way up and
+   there is nothing to ask the player to turn. */
 
 /* --- High scores --------------------------------------------------------- */
 
